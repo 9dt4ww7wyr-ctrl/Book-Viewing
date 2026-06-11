@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预约看房功能 - 双端原型预览</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        .preview-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .preview-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
+    </style>
+</head>
+<body class="bg-zinc-900 min-h-screen text-white">
+    <div class="max-w-5xl mx-auto px-8 py-16">
+        <!-- Header -->
+        <div class="text-center mb-16">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand/10 text-brand text-sm mb-6">
+                <i class="fas fa-drafting-compass"></i>高保真原型
+            </div>
+            <h1 class="text-4xl font-bold mb-4">预约看房功能</h1>
+            <p class="text-lg text-white/50 max-w-2xl mx-auto leading-relaxed">包含C端小程序和PC端后台管理双端原型，覆盖预约表单、规则配置、人员管理、预约记录等完整功能</p>
+        </div>
+
+        <!-- Preview Cards -->
+        <div class="grid grid-cols-2 gap-8 mb-16">
+            <!-- C端 -->
+            <a href="pages/c-端小程序.html" class="preview-card bg-zinc-800 rounded-3xl overflow-hidden group cursor-pointer block">
+                <div class="p-8">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-2xl bg-brand/20 flex items-center justify-center">
+                            <i class="fas fa-mobile-alt text-brand text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold">C端小程序</h2>
+                            <p class="text-sm text-white/40">移动端用户体验</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3 mb-6">
+                        <div class="flex items-center gap-2 text-sm text-white/60">
+                            <i class="fas fa-check text-brand text-xs"></i>预约看房表单填写
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-white/60">
+                            <i class="fas fa-check text-brand text-xs"></i>预约须知弹窗（同意记录）
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-white/60">
+                            <i class="fas fa-check text-brand text-xs"></i>预约成功提示页
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-white/60">
+                            <i class="fas fa-check text-brand text-xs"></i>我的预约记录列表
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-white/60">
+                            <i class="fas fa-check text-brand text-xs"></i>预约详情与取消
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-white/60">
+                            <i class="fas fa-check text-brand text-xs"></i>可选时段可视化展示
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 text-brand text-sm font-medium group-hover:gap-3 transition-all">
+                        查看原型 <i class="fas fa-arrow-right text-xs"></i>
+                    </div>
+                </div>
+                <!-- Mini Preview -->
+                <div class="bg-zinc-700/50 px-8 py-6 flex justify-center">
+                    <div class="w-32 h-56 bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="h-6 bg-brand"></div>
+                        <div class="p-2 space-y-2">
+                            <div class="h-12 bg-gray-100 rounded-lg"></div>
+                            <div class="space-y-1.5">
+                                <div class="h-2 bg-gray-200 rounded w-3/4"></div>
+                                <div class="h-2 bg-gray-200 rounded w-1/2"></div>
+                                <div class="h-2 bg-gray-200 rounded w-2/3"></div>
+                            </div>
+                            <div class="h-6 bg-brand/20 rounded mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- PC端 -->
+            <a href="pages/pc-端后台.html" class="preview-card bg-zinc-800 rounded-3xl overflow-hidden group cursor-pointer block">
+                <div class="p-8">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-2xl bg-warm/20 flex items-center justify-center">
+                            <i class="fas fa-desktop text-warm text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold">PC端后台管理</h2>
+                            <p class="text-sm text-white/40">运营管理后台</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3 mb-6">
+                        <div class="flex items-center gap-2 text-sm text-white/60">
+                            <i class="fas fa-check text-warm text-xs"></i>预约须知 + 用户同意记录
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-white/60">
+                            <i class="fas fa-check text-warm text-xs"></i>填写字段灵活配置
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-white/60">
+                            <i class="fas fa-check text-warm text-xs"></i>接待量与取消预约规则
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-white/60">
+                            <i class="fas fa-check text-warm text-xs"></i>签到签退规则配置
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-white/60">
+                            <i class="fas fa-check text-warm text-xs"></i>资格验证（人才编号精确匹配）
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-white/60">
+                            <i class="fas fa-check text-warm text-xs"></i>人员名单嵌入展示 + 导入管理
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 text-warm text-sm font-medium group-hover:gap-3 transition-all">
+                        查看原型 <i class="fas fa-arrow-right text-xs"></i>
+                    </div>
+                </div>
+                <!-- Mini Preview -->
+                <div class="bg-zinc-700/50 px-8 py-6 flex justify-center">
+                    <div class="w-48 h-32 bg-white rounded-lg shadow-lg overflow-hidden flex">
+                        <div class="w-8 bg-zinc-800 shrink-0"></div>
+                        <div class="flex-1 p-2 space-y-1.5">
+                            <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+                            <div class="h-2 bg-gray-100 rounded"></div>
+                            <div class="h-2 bg-gray-100 rounded w-3/4"></div>
+                            <div class="mt-2 space-y-1">
+                                <div class="h-1.5 bg-gray-200 rounded w-full"></div>
+                                <div class="h-1.5 bg-gray-200 rounded w-5/6"></div>
+                                <div class="h-1.5 bg-gray-200 rounded w-4/5"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Footer Info -->
+        <div class="text-center text-white/30 text-sm">
+            <p>预约看房功能 · 双端高保真原型 · 2026</p>
+            <p class="mt-1">PRD文档路径：docs/prd.md</p>
+        </div>
+    </div>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#f05a28',
+                        warm: '#c8956c',
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
