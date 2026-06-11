@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>预约看房 - C端小程序原型</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        brand: '#d4855e',
+        'brand-dark': '#b5653a',
+        'brand-light': '#faf4ef',
+        'brand-50': '#fdf8f5',
+        gold: '#b8944f',
+        'gold-light': '#fdfaf5',
+        warm: '#8b7355',
+        surface: '#f9f7f4',
+      }
+    }
+  }
+}
+</script>
+<style>
+* { -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif; background: #f0ede8; }
+.phone-frame { width: 375px; height: 812px; }
+.scroll-area { overflow-y: auto; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
+.scroll-area::-webkit-scrollbar { display: none; }
+
+/* ── Page system ── */
+.page { display: none; position: absolute; inset: 0; flex-direction: column; }
+.page.active { display: flex; }
+
+/* ── Animations ── */
+@keyframes slideInRight { from { transform: translateX(30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes floatUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes pulse-dot { 0%, 100% { opacity: .4; transform: scale(1); } 50% { opacity: 1; transform: scale(1.3); } }
+
+.anim-slide-in { animation: slideInRight 0.35s cubic-bezier(0.22, 0.61, 0.36, 1); }
+.anim-slide-up { animation: slideInUp 0.4s cubic-bezier(0.22, 0.61, 0.36, 1); }
+.anim-fade-in { animation: fadeIn 0.3s ease; }
+.anim-scale-in { animation: scaleIn 0.3s cubic-bezier(0.22, 0.61, 0.36, 1); }
+.anim-float-up { animation: floatUp 0.4s cubic-bezier(0.32, 0.72, 0, 1); }
+
+/* Stagger children */
+.stagger > * { animation: slideInUp 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.stagger > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger > *:nth-child(2) { animation-delay: 0.10s; }
+.stagger > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger > *:nth-child(4) { animation-delay: 0.20s; }
+.stagger > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger > *:nth-child(6) { animation-delay: 0.30s; }
+.stagger > *:nth-child(7) { animation-delay: 0.35s; }
+
+/* ── Interactive ── */
+.btn-press:active { transform: scale(0.96); transition: transform 0.12s ease; }
+.slot-item { transition: all 0.2s ease; }
+.slot-item.selected { border-color: #d4855e !important; background: #fdf8f5 !important; box-shadow: 0 0 0 2px rgba(212,133,94,0.2); }
+.slot-item.selected .slot-time { color: #d4855e !important; font-weight: 600; }
+.slot-item.selected .slot-badge { background: #d4855e !important; color: #fff !important; }
+.slot-item.full { pointer-events: none; opacity: 0.5; }
+
+/* ── Tab ── */
+.tab-item { transition: all 0.2s ease; position: relative; }
+.tab-item.active { color: #d4855e; font-weight: 600; }
+.tab-item.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 20px; height: 2.5px; border-radius: 999px; background: #d4855e; }
+
+/* ── Date strip ── */
+.date-strip { overflow-x: auto; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
+.date-strip::-webkit-scrollbar { display: none; }
+.date-chip { transition: all 0.2s ease; flex-shrink: 0; }
+.date-chip.selected { background: #d4855e; color: #fff; border-color: #d4855e; }
+.date-chip.selected .chip-day { color: rgba(255,255,255,0.8); }
+.date-chip.today .chip-date { position: relative; }
+.date-chip.today .chip-date::after { content: '今'; position: absolute; top: -4px; right: -14px; font-size: 9px; color: #d4855e; font-weight: 600; }
+.date-chip.today.selected .chip-date::after { color: #fff; }
+
+/* ── Glass ── */
+.glass { background: rgba(255,255,255,0.72); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); }
+
+/* ── Shimmer ── */
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+.shimmer { background: linear-gradient(90deg, #f0ede8 25%, #e8e4de 50%, #f0ede8 75%); background-size: 200% 100%; animation: shimmer 1.8s infinite; }
+
+/* ── Toast (屏幕正中间) ── */
+@keyframes toastIn { from { transform: translateY(20px) scale(.95); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+@keyframes toastOut { from { transform: translateY(0) scale(1); opacity: 1; } to { transform: translateY(-10px) scale(.95); opacity: 0; } }
+.toast-container { position:absolute; inset:0; z-index:60; display:flex; align-items:center; justify-content:center; pointer-events:none; }
+.toast-item { display:flex; align-items:flex-start; gap:12px; padding:18px 22px; border-radius:18px; background:rgba(31,41,55,.92); color:#fff; font-size:13px; line-height:1.5; box-shadow:0 12px 32px rgba(0,0,0,.2); animation:toastIn .35s cubic-bezier(.22,.61,.36,1) both; pointer-events:auto; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); max-width:78%; min-width:240px; }
+.toast-item.toast-exit { animation:toastOut .28s ease forwards; }
+.toast-icon { flex-shrink:0; width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify:center; font-size:11px; }
+.toast-icon.err { background:#ef4444; }
+.toast-icon.warn { background:#f59e0b; }
+
+/* ── Error Modal (规则校验弹窗) ── */
+.error-modal-content { position:absolute; inset-0; z-index:55; display:flex; align-items:center; justify-content:center; }
+.error-modal-content.hidden { display:none; }
+.error-modal-box { background:#fff; border-radius:20px; margin:24px; width:82%; max-width:300px; box-shadow:0 20px 25px -5px rgba(0,0,0,.1),0 10px 10px -5px rgba(0,0,0,.04); overflow:hidden; animation:scaleIn .3s cubic-bezier(.22,.61,.36,1) both; }
+
+/* ── Scene Selector ── */
+.scene-btn { transition: all .15s ease; }
+.scene-btn.active { background:#d4855e !important; color:#fff !important; }
+
+/* ── Global Hidden (不依赖Tailwind CDN) ── */
+.hidden { display: none !important; }
+</style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-8">
+
+<!-- ═══════════════ iPhone Frame ═══════════════ -->
+<div class="phone-frame bg-white rounded-[44px] shadow-2xl border-[8px] border-zinc-800 relative overflow-hidden flex flex-col">
+
+  <!-- ── Status Bar ── -->
+  <div class="h-[47px] shrink-0 flex items-end justify-between px-7 pb-1.5 bg-white text-xs font-semibold relative">
+    <span class="text-zinc-900">9:41</span>
+    <div class="w-32 h-7 bg-zinc-950 rounded-full absolute top-2 left-1/2 -translate-x-1/2"></div>
+    <div class="flex items-center gap-1.5 text-zinc-900">
+      <i class="fas fa-signal text-[10px]"></i>
+      <i class="fas fa-wifi text-[10px]"></i>
+      <i class="fas fa-battery-full text-[10px]"></i>
+    </div>
+  </div>
+
+  <!-- ── App Container ── -->
+  <div id="app" class="flex-1 relative overflow-hidden bg-surface">
+
+    <!-- ═══════════ HOME ═══════════ -->
+    <div id="page-home" class="page active">
+      <!-- Nav -->
+      <div class="shrink-0 h-11 flex items-center justify-center bg-white text-[15px] font-semibold text-zinc-800 relative border-b border-zinc-100/80">
+        <i class="fas fa-chevron-left absolute left-4 text-sm text-zinc-400 cursor-pointer btn-press" onclick="goBack()"></i>
+        预约看房
+      </div>
+
+      <!-- Scroll -->
+      <div class="flex-1 scroll-area">
+        <!-- Hero -->
+        <div class="relative h-[220px] overflow-hidden">
+          <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover" alt="">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-black/5"></div>
+          <div class="absolute bottom-6 left-5 right-5 text-white">
+            <p class="text-[10px] tracking-[0.2em] opacity-60 mb-2 font-medium">PREMIUM RESIDENCE</p>
+            <h1 class="text-[26px] font-bold tracking-tight leading-tight mb-1">翡翠湖畔 · 云庐</h1>
+            <p class="text-xs opacity-70 tracking-wide">城市品质人居 · 建面约 89-142㎡</p>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="px-4 -mt-4 relative z-10 pb-6 stagger">
+          <!-- Quick Tags -->
+          <div class="bg-white rounded-2xl p-4 shadow-sm border border-zinc-100/80 flex items-center gap-4 text-xs text-zinc-500">
+            <span class="flex items-center gap-1.5"><i class="fas fa-map-marker-alt text-brand text-[11px]"></i>杭州·余杭区</span>
+            <span class="w-px h-3 bg-zinc-200"></span>
+            <span class="flex items-center gap-1.5"><i class="fas fa-building text-brand text-[11px]"></i>在售</span>
+            <span class="w-px h-3 bg-zinc-200"></span>
+            <span class="flex items-center gap-1.5 text-warm font-medium"><i class="fas fa-tag text-[11px]"></i>约28,000元/㎡</span>
+          </div>
+
+          <!-- Entry Cards -->
+          <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-zinc-100/80">
+            <div class="p-4 flex items-center gap-3.5 cursor-pointer btn-press hover:bg-brand-50/50 transition-colors" onclick="startBooking()">
+              <div class="w-11 h-11 rounded-xl bg-brand flex items-center justify-center shadow-sm shadow-brand/20">
+                <i class="fas fa-calendar-check text-white text-lg"></i>
+              </div>
+              <div class="flex-1">
+                <h3 class="font-semibold text-zinc-800 text-[15px]">预约看房</h3>
+                <p class="text-xs text-zinc-400 mt-0.5">在线预约，专属接待服务</p>
+              </div>
+              <i class="fas fa-chevron-right text-zinc-300 text-xs"></i>
+            </div>
+            <div class="h-px bg-zinc-50 mx-4"></div>
+            <div class="p-4 flex items-center gap-3.5 cursor-pointer btn-press hover:bg-zinc-50/50 transition-colors" onclick="navigateTo('page-list')">
+              <div class="w-11 h-11 rounded-xl bg-zinc-100 flex items-center justify-center">
+                <i class="fas fa-clipboard-list text-zinc-500 text-lg"></i>
+              </div>
+              <div class="flex-1">
+                <h3 class="font-semibold text-zinc-800 text-[15px]">我的预约</h3>
+                <p class="text-xs text-zinc-400 mt-0.5">查看预约记录与到访状态</p>
+              </div>
+              <i class="fas fa-chevron-right text-zinc-300 text-xs"></i>
+            </div>
+          </div>
+
+          <!-- Notice -->
+          <div class="bg-brand-50 rounded-2xl p-4 flex items-start gap-3 border border-brand/8">
+            <div class="w-7 h-7 rounded-lg bg-brand/8 flex items-center justify-center shrink-0 mt-0.5">
+              <i class="fas fa-info-circle text-brand text-xs"></i>
+            </div>
+            <p class="text-xs text-zinc-500 leading-relaxed">请提前预约，合理选择到访时间。到访前一天 19:00 前可取消预约，多次爽约将影响预约资格。</p>
+          </div>
+
+          <!-- 测试入口：扫码场景 -->
+          <div class="bg-white rounded-2xl p-4 shadow-sm border border-dashed border-zinc-200 space-y-2">
+            <p class="text-[10px] text-zinc-300 font-medium tracking-wider">扫码场景测试入口</p>
+            <button class="w-full py-2.5 rounded-xl bg-green-50 text-green-700 text-xs font-medium btn-press hover:bg-green-100 transition-colors" onclick="navigateTo('page-checkin-confirm')">
+              <i class="fas fa-qrcode mr-1.5"></i>扫码签到 → 预约客户登记
+            </button>
+            <button class="w-full py-2.5 rounded-xl bg-amber-50 text-amber-700 text-xs font-medium btn-press hover:bg-amber-100 transition-colors" onclick="navigateTo('page-checkin-fail')">
+              <i class="fas fa-qrcode mr-1.5"></i>扫码签到 → 未预约提示
+            </button>
+            <button class="w-full py-2.5 rounded-xl bg-blue-50 text-blue-700 text-xs font-medium btn-press hover:bg-blue-100 transition-colors" onclick="navigateTo('page-checkout-fail')">
+              <i class="fas fa-sign-out-alt mr-1.5"></i>扫码签退 → 无需签退提示
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TabBar -->
+      <div class="shrink-0 h-[84px] glass border-t border-zinc-100/60 flex items-start justify-around pt-2.5 pb-5">
+        <div class="flex flex-col items-center gap-1 text-brand">
+          <i class="fas fa-home text-lg"></i>
+          <span class="text-[10px] font-semibold">首页</span>
+        </div>
+        <div class="flex flex-col items-center gap-1 text-zinc-400">
+          <i class="far fa-calendar-alt text-lg"></i>
+          <span class="text-[10px]">预约</span>
+        </div>
+        <div class="flex flex-col items-center gap-1 text-zinc-400">
+          <i class="far fa-user text-lg"></i>
+          <span class="text-[10px]">我的</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ FORM ═══════════ -->
+    <div id="page-form" class="page">
+      <!-- Header -->
+      <div class="shrink-0 bg-white border-b border-zinc-100/80">
+        <div class="h-11 flex items-center justify-center relative">
+          <div class="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center absolute left-3 cursor-pointer btn-press" onclick="navigateTo('page-home')">
+            <i class="fas fa-chevron-left text-zinc-500 text-xs"></i>
+          </div>
+          <span class="text-[15px] font-semibold text-zinc-800">预约看房</span>
+        </div>
+      </div>
+
+      <!-- Banner -->
+      <div class="shrink-0 relative h-[130px] overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover" alt="">
+        <div class="absolute inset-0 bg-gradient-to-r from-[#2d241e]/70 via-[#2d241e]/40 to-transparent"></div>
+        <div class="absolute bottom-0 left-0 right-0 h-8 bg-surface" style="clip-path: polygon(0 100%, 100% 100%, 100% 0, 0 100%);"></div>
+        <div class="absolute inset-0 flex flex-col justify-center px-5">
+          <p class="text-[10px] text-white/50 tracking-[0.15em] mb-1">PREMIUM RESIDENCE</p>
+          <h2 class="text-xl font-bold text-white tracking-tight">翡翠湖畔 · 云庐</h2>
+          <p class="text-xs text-white/60 mt-0.5">专属接待 · 尊享看房体验</p>
+        </div>
+      </div>
+
+      <!-- Scroll -->
+      <div class="flex-1 scroll-area bg-surface -mt-1">
+        <div class="px-4 pt-3 pb-6 stagger space-y-3.5">
+          <!-- ══ Basic Info Card ══ -->
+          <div class="bg-white rounded-2xl shadow-sm border border-zinc-100/80 overflow-hidden">
+            <div class="px-4 py-3 border-b border-zinc-50 flex items-center gap-2.5">
+              <span class="w-1 h-[18px] bg-brand rounded-full"></span>
+              <span class="text-sm font-semibold text-zinc-700">基本信息</span>
+            </div>
+            <div class="divide-y divide-zinc-50">
+              <div class="px-4 py-3.5">
+                <label class="text-[11px] text-zinc-400 mb-1.5 block tracking-wide">项目名称 <span class="text-red-400">*</span></label>
+                <input type="text" value="翡翠湖畔·云庐" readonly class="w-full text-sm text-zinc-700 outline-none bg-transparent cursor-default">
+              </div>
+              <div class="px-4 py-3.5">
+                <label class="text-[11px] text-zinc-400 mb-1.5 block tracking-wide">客户姓名 <span class="text-red-400">*</span></label>
+                <input type="text" placeholder="请输入姓名" value="李明" class="w-full text-sm text-zinc-800 outline-none bg-transparent placeholder-zinc-300">
+              </div>
+              <div class="px-4 py-3.5">
+                <label class="text-[11px] text-zinc-400 mb-1.5 block tracking-wide">客户电话 <span class="text-red-400">*</span></label>
+                <input type="tel" placeholder="请输入手机号" value="138****5678" class="w-full text-sm text-zinc-800 outline-none bg-transparent placeholder-zinc-300">
+              </div>
+              <div class="px-4 py-3.5">
+                <label class="text-[11px] text-zinc-400 mb-1.5 block tracking-wide">人才编号 <span class="text-red-400">*</span></label>
+                <input type="text" placeholder="请输入人才编号" value="RC20240012" class="w-full text-sm text-zinc-800 outline-none bg-transparent placeholder-zinc-300">
+              </div>
+            </div>
+          </div>
+
+          <!-- ══ Time Card ══ -->
+          <div class="bg-white rounded-2xl shadow-sm border border-zinc-100/80 overflow-hidden">
+            <div class="px-4 py-3 border-b border-zinc-50 flex items-center gap-2.5">
+              <span class="w-1 h-[18px] bg-gold rounded-full"></span>
+              <span class="text-sm font-semibold text-zinc-700">预约时间</span>
+            </div>
+            <!-- Date Selector -->
+            <div class="px-4 pt-3.5 pb-2">
+              <label class="text-[11px] text-zinc-400 mb-2 block tracking-wide">看房日期 <span class="text-red-400">*</span></label>
+              <div class="date-strip flex gap-2 pb-1" id="dateStrip">
+                <!-- filled by JS -->
+              </div>
+            </div>
+            <div class="h-px bg-zinc-50 mx-4"></div>
+            <!-- Selected time display -->
+            <div class="px-4 py-3 flex items-center justify-between">
+              <div>
+                <label class="text-[11px] text-zinc-400 mb-0.5 block tracking-wide">看房时段 <span class="text-red-400">*</span></label>
+                <span class="text-sm text-zinc-800 font-medium" id="selectedTimeDisplay">10:00 - 11:00</span>
+              </div>
+              <span class="text-[10px] text-zinc-400 bg-zinc-100 rounded-full px-2.5 py-1" id="selectedQuota">余5位</span>
+            </div>
+          </div>
+
+          <!-- ══ Time Slot Grid ══ -->
+          <div class="bg-white rounded-2xl shadow-sm border border-zinc-100/80 p-4">
+            <p class="text-[11px] text-zinc-400 mb-3 tracking-wide">可选时段（点击选择）</p>
+            <div class="grid grid-cols-3 gap-2.5" id="timeSlotGrid">
+              <!-- filled by JS -->
+            </div>
+          </div>
+
+          <!-- ══ Extra Info ══ -->
+          <div class="bg-white rounded-2xl shadow-sm border border-zinc-100/80 overflow-hidden">
+            <div class="px-4 py-3 border-b border-zinc-50 flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <span class="w-1 h-[18px] bg-zinc-300 rounded-full"></span>
+                <span class="text-sm font-semibold text-zinc-700">其他信息</span>
+              </div>
+              <span class="text-[10px] text-zinc-400">选填</span>
+            </div>
+            <div class="divide-y divide-zinc-50">
+              <div class="px-4 py-3.5">
+                <label class="text-[11px] text-zinc-400 mb-1.5 block tracking-wide">车牌号</label>
+                <input type="text" placeholder="请输入车牌号（选填）" class="w-full text-sm text-zinc-800 outline-none bg-transparent placeholder-zinc-300">
+              </div>
+              <div class="flex items-center justify-between px-4 py-3.5">
+                <span class="text-sm text-zinc-600">陪同人数</span>
+                <div class="flex items-center gap-3">
+                  <button class="w-7 h-7 rounded-full border border-zinc-200 flex items-center justify-center text-zinc-400 text-sm btn-press" onclick="adjustCount(-1)">−</button>
+                  <span class="text-sm text-zinc-800 w-5 text-center font-medium tab-item" id="escortCount">0</span>
+                  <button class="w-7 h-7 rounded-full bg-brand-50 border border-brand/20 flex items-center justify-center text-brand text-sm btn-press" onclick="adjustCount(1)">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Agreement -->
+          <div class="flex items-start gap-2.5 px-1 pt-1">
+            <input type="checkbox" checked class="mt-0.5 accent-brand w-4 h-4 rounded">
+            <p class="text-xs text-zinc-400 leading-relaxed">
+              我已阅读并同意<a class="text-brand font-medium cursor-pointer" onclick="showNoticeModal()">《预约须知》</a>，确认提交预约信息
+            </p>
+          </div>
+
+          <!-- Submit -->
+          <!-- Scene Selector (Demo) -->
+          <div class="px-1 pt-2 pb-1">
+            <div class="flex items-center gap-1 mb-1.5 overflow-x-auto">
+              <span class="text-[9px] text-zinc-400 shrink-0 mr-1 mt-0.5">演示场景</span>
+              <button class="scene-btn active px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap btn-press" onclick="switchScene(0,this)">正常提交</button>
+              <button class="scene-btn px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap btn-press bg-zinc-100 text-zinc-500" onclick="switchScene(1,this)">姓名为空</button>
+              <button class="scene-btn px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap btn-press bg-zinc-100 text-zinc-500" onclick="switchScene(2,this)">手机号错误</button>
+              <button class="scene-btn px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap btn-press bg-zinc-100 text-zinc-500" onclick="switchScene(3,this)">未选时段</button>
+              <button class="scene-btn px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap btn-press bg-zinc-100 text-zinc-500" onclick="switchScene(4,this)">未同意</button>
+              <span class="text-zinc-300 text-[10px]">|</span>
+              <button class="scene-btn px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap btn-press bg-red-50 text-red-500" onclick="switchScene(5,this)">姓名不在名单</button>
+              <button class="scene-btn px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap btn-press bg-red-50 text-red-500" onclick="switchScene(6,this)">编号不在名单</button>
+              <button class="scene-btn px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap btn-press bg-red-50 text-red-500" onclick="switchScene(7,this)">均不在名单</button>
+              <span class="text-zinc-300 text-[10px]">|</span>
+              <button class="scene-btn px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap btn-press bg-amber-50 text-amber-600" onclick="switchScene(8,this)">超天数</button>
+              <button class="scene-btn px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap btn-press bg-amber-50 text-amber-600" onclick="switchScene(9,this)">重复预约</button>
+              <button class="scene-btn px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap btn-press bg-amber-50 text-amber-600" onclick="switchScene(10,this)">时段已满</button>
+              <button class="scene-btn px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap btn-press bg-red-50 text-red-500" onclick="switchScene(11,this)">过取消期</button>
+              <button class="scene-btn px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap btn-press bg-amber-50 text-amber-600" onclick="switchScene(12,this)">非签到时</button>
+            </div>
+          </div>
+          <button class="w-full py-3.5 rounded-2xl bg-brand text-white font-semibold text-[15px] btn-press shadow-md shadow-brand/15 tracking-wide" onclick="submitForm()">
+            提交预约
+          </button>
+          <div class="h-4"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ SUCCESS ═══════════ -->
+    <div id="page-success" class="page bg-white">
+      <div class="flex-1 flex flex-col items-center justify-center px-8">
+        <div class="w-[72px] h-[72px] rounded-full bg-brand flex items-center justify-center mb-6 shadow-lg shadow-brand/15 anim-scale-in">
+          <i class="fas fa-check text-3xl text-white"></i>
+        </div>
+        <h2 class="text-xl font-bold text-zinc-800 anim-slide-up">预约成功</h2>
+        <p class="text-sm text-zinc-400 mt-1.5 text-center leading-relaxed anim-slide-up">您已成功预约看房<br>请在预约时段内到访签到</p>
+        <div class="w-full mt-8 bg-zinc-50 rounded-2xl p-5 space-y-3 border border-zinc-100 anim-slide-up">
+          <div class="flex justify-between text-sm"><span class="text-zinc-400">项目</span><span class="text-zinc-700 font-medium">翡翠湖畔·云庐</span></div>
+          <div class="flex justify-between text-sm"><span class="text-zinc-400">日期</span><span class="text-zinc-700 font-medium">2026-06-15</span></div>
+          <div class="flex justify-between text-sm"><span class="text-zinc-400">时段</span><span class="text-zinc-700 font-medium">10:00 – 11:00</span></div>
+          <div class="flex justify-between text-sm"><span class="text-zinc-400">姓名</span><span class="text-zinc-700 font-medium">李明</span></div>
+        </div>
+        <button class="w-full mt-6 py-3.5 rounded-2xl bg-brand text-white font-semibold text-sm btn-press shadow-md shadow-brand/15" onclick="navigateTo('page-list')">查看我的预约</button>
+        <button class="w-full mt-3 py-3.5 rounded-2xl bg-zinc-100 text-zinc-500 font-medium text-sm btn-press" onclick="navigateTo('page-home')">返回首页</button>
+      </div>
+    </div>
+
+    <!-- ═══════════ MY BOOKINGS ═══════════ -->
+    <div id="page-list" class="page">
+      <div class="shrink-0 bg-white border-b border-zinc-100/80">
+        <div class="h-11 flex items-center justify-center relative">
+          <div class="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center absolute left-3 cursor-pointer btn-press" onclick="navigateTo('page-home')">
+            <i class="fas fa-chevron-left text-zinc-500 text-xs"></i>
+          </div>
+          <span class="text-[15px] font-semibold text-zinc-800">我的预约</span>
+        </div>
+      </div>
+
+      <div class="flex-1 scroll-area">
+        <div class="px-4 py-4 space-y-3" id="bookingList">
+          <!-- Record 1: pending -->
+          <div class="bg-white rounded-2xl shadow-sm border border-zinc-100/80 overflow-hidden cursor-pointer btn-press" data-status="pending" onclick="goToDetail('pending')">
+            <div class="p-4">
+              <div class="flex items-center justify-between mb-2.5">
+                <span class="text-sm font-semibold text-zinc-800">翡翠湖畔·云庐</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-600 border border-amber-100">待到访</span>
+              </div>
+              <div class="flex items-center gap-4 text-xs text-zinc-400">
+                <span><i class="far fa-calendar mr-1"></i>2026-06-15</span>
+                <span><i class="far fa-clock mr-1"></i>10:00-11:00</span>
+              </div>
+              <div class="flex items-center gap-4 text-xs text-zinc-400 mt-1.5">
+                <span><i class="far fa-user mr-1"></i>李明</span>
+              </div>
+            </div>
+            <div class="border-t border-zinc-50 px-4 py-2.5 flex items-center justify-between bg-zinc-50/50">
+              <span class="text-[10px] text-zinc-400">预约时间：2026-06-10 09:30</span>
+              <span class="text-xs text-brand font-medium">查看详情 <i class="fas fa-chevron-right text-[10px]"></i></span>
+            </div>
+          </div>
+
+          <!-- Record 2: visited (可签退) -->
+          <div class="bg-white rounded-2xl shadow-sm border border-zinc-100/80 overflow-hidden" data-status="visited">
+            <div class="p-4 cursor-pointer" onclick="goToDetail('visited')">
+              <div class="flex items-center justify-between mb-2.5">
+                <span class="text-sm font-semibold text-zinc-800">翡翠湖畔·云庐</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-600 border border-emerald-100">已签到</span>
+              </div>
+              <div class="flex items-center gap-4 text-xs text-zinc-400">
+                <span><i class="far fa-calendar mr-1"></i>2026-06-08</span>
+                <span><i class="far fa-clock mr-1"></i>14:00-15:00</span>
+              </div>
+              <div class="flex items-center gap-4 text-xs text-zinc-400 mt-1.5">
+                <span><i class="far fa-user mr-1"></i>李明</span>
+              </div>
+            </div>
+            <div class="border-t border-zinc-50 px-4 py-2.5 bg-zinc-50/50">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] text-zinc-400">签到时间：2026-06-08 14:05</span>
+                <button class="text-[11px] font-medium text-brand px-3 py-1 rounded-full bg-brand-50 border border-brand/10 btn-press" onclick="event.stopPropagation();checkoutRecord(this)">
+                  <i class="fas fa-sign-out-alt mr-1"></i>签退
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Record 3: checked_out -->
+          <div class="bg-white rounded-2xl shadow-sm border border-zinc-100/80 overflow-hidden cursor-pointer btn-press" data-status="checked_out" onclick="goToDetail('checked_out')">
+            <div class="p-4">
+              <div class="flex items-center justify-between mb-2.5">
+                <span class="text-sm font-semibold text-zinc-800">翡翠湖畔·云庐</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-sky-50 text-sky-600 border border-sky-100">已签退</span>
+              </div>
+              <div class="flex items-center gap-4 text-xs text-zinc-400">
+                <span><i class="far fa-calendar mr-1"></i>2026-06-06</span>
+                <span><i class="far fa-clock mr-1"></i>09:00-10:00</span>
+              </div>
+              <div class="flex items-center gap-4 text-xs text-zinc-400 mt-1.5">
+                <span><i class="far fa-user mr-1"></i>李明</span>
+              </div>
+            </div>
+            <div class="border-t border-zinc-50 px-4 py-2.5 bg-zinc-50/50">
+              <span class="text-[10px] text-zinc-400">签退时间：2026-06-06 10:20</span>
+            </div>
+          </div>
+
+          <!-- Record 4: cancelled -->
+          <div class="bg-white rounded-2xl shadow-sm border border-zinc-100/80 overflow-hidden cursor-pointer btn-press" data-status="cancelled" onclick="goToDetail('cancelled')">
+            <div class="p-4">
+              <div class="flex items-center justify-between mb-2.5">
+                <span class="text-sm font-semibold text-zinc-800">翡翠湖畔·云庐</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-zinc-100 text-zinc-400 border border-zinc-200">已取消</span>
+              </div>
+              <div class="flex items-center gap-4 text-xs text-zinc-400">
+                <span><i class="far fa-calendar mr-1"></i>2026-06-05</span>
+                <span><i class="far fa-clock mr-1"></i>09:00-10:00</span>
+              </div>
+              <div class="flex items-center gap-4 text-xs text-zinc-400 mt-1.5">
+                <span><i class="far fa-user mr-1"></i>李明</span>
+              </div>
+            </div>
+            <div class="border-t border-zinc-50 px-4 py-2.5 bg-zinc-50/50">
+              <span class="text-[10px] text-zinc-400">取消时间：2026-06-04 18:22</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ DETAIL ═══════════ -->
+    <div id="page-detail" class="page">
+      <div class="shrink-0 bg-white border-b border-zinc-100/80">
+        <div class="h-11 flex items-center justify-center relative">
+          <div class="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center absolute left-3 cursor-pointer btn-press" onclick="navigateTo('page-list')">
+            <i class="fas fa-chevron-left text-zinc-500 text-xs"></i>
+          </div>
+          <span class="text-[15px] font-semibold text-zinc-800">预约详情</span>
+        </div>
+      </div>
+
+      <div class="flex-1 scroll-area">
+        <div class="px-4 py-5 space-y-4">
+          <!-- Status -->
+          <div class="text-center bg-brand-50 rounded-2xl p-5 border border-brand/8" id="detailStatus">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white mb-3 border border-amber-100 shadow-sm">
+              <i class="fas fa-clock text-amber-500 text-xs"></i>
+              <span class="text-sm font-medium text-amber-600">待到访</span>
+            </div>
+            <p class="text-xs text-zinc-400">预约编号：YY20260615001</p>
+          </div>
+
+          <!-- Info -->
+          <div class="bg-white rounded-2xl shadow-sm border border-zinc-100/80 overflow-hidden">
+            <div class="px-4 py-3 border-b border-zinc-50 flex items-center gap-2.5">
+              <span class="w-1 h-[18px] bg-brand rounded-full"></span>
+              <span class="text-sm font-semibold text-zinc-700">预约信息</span>
+            </div>
+            <div class="p-4 space-y-3">
+              <div class="flex justify-between text-sm"><span class="text-zinc-400">项目名称</span><span class="text-zinc-800">翡翠湖畔·云庐</span></div>
+              <div class="flex justify-between text-sm"><span class="text-zinc-400">客户姓名</span><span class="text-zinc-800">李明</span></div>
+              <div class="flex justify-between text-sm"><span class="text-zinc-400">客户电话</span><span class="text-zinc-800">138****5678</span></div>
+              <div class="flex justify-between text-sm"><span class="text-zinc-400">人才编号</span><span class="text-zinc-800">RC20240012</span></div>
+              <div class="flex justify-between text-sm"><span class="text-zinc-400">看房日期</span><span class="text-zinc-800 font-medium">2026-06-15</span></div>
+              <div class="flex justify-between text-sm"><span class="text-zinc-400">看房时段</span><span class="text-zinc-800 font-medium">10:00 – 11:00</span></div>
+              <div class="flex justify-between text-sm"><span class="text-zinc-400">预约时间</span><span class="text-zinc-800">2026-06-10 09:30</span></div>
+            </div>
+          </div>
+
+          <!-- Agree Record -->
+          <div class="bg-white rounded-2xl shadow-sm border border-zinc-100/80 overflow-hidden">
+            <div class="px-4 py-3 border-b border-zinc-50 flex items-center gap-2.5">
+              <span class="w-1 h-[18px] bg-emerald-400 rounded-full"></span>
+              <span class="text-sm font-semibold text-zinc-700">同意记录</span>
+            </div>
+            <div class="p-4 flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center">
+                <i class="fas fa-check-circle text-emerald-500 text-sm"></i>
+              </div>
+              <div>
+                <p class="text-sm text-zinc-800">已同意《预约须知》</p>
+                <p class="text-xs text-zinc-400 mt-0.5">同意时间：2026-06-10 09:28</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div id="detailActions">
+            <button class="w-full py-3 rounded-2xl border border-red-200 text-red-500 text-sm font-medium btn-press" onclick="cancelAppointment()">
+              <i class="fas fa-times mr-1.5"></i>取消预约
+            </button>
+            <p class="text-center text-[10px] text-zinc-400 mt-2">到访前一天 19:00 前可取消预约</p>
+          </div>
+          <div class="h-4"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ MODAL: Notice ═══════════ -->
+    <div id="modal-notice" class="absolute inset-0 z-50 hidden">
+      <div class="absolute inset-0 bg-black/40 anim-fade-in" onclick="closeNoticeModal()"></div>
+      <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[24px] anim-float-up max-h-[78%] flex flex-col">
+        <div class="shrink-0 flex items-center justify-center py-3.5 relative border-b border-zinc-50">
+          <div class="w-9 h-1 bg-zinc-200 rounded-full absolute top-2"></div>
+          <h3 class="font-semibold text-zinc-800 text-[15px]">预约须知</h3>
+        </div>
+        <div class="flex-1 overflow-y-auto px-5 py-4 text-sm text-zinc-500 leading-relaxed space-y-3">
+          <div>
+            <p class="font-semibold text-zinc-700 mb-2">一、预约说明</p>
+            <p class="mb-1.5">1. 预约看房需提前预约，最多可提前 7 天进行预约。</p>
+            <p class="mb-1.5">2. 每天开放预约时间为 08:00-20:00，其他时间段不可预约。</p>
+            <p class="mb-1.5">3. 30 天内不可重复预约同一项目。</p>
+          </div>
+          <div>
+            <p class="font-semibold text-zinc-700 mb-2">二、取消规则</p>
+            <p class="mb-1.5">1. 最迟可在到访前一天 19:00 前取消预约。</p>
+            <p class="mb-1.5">2. 超过取消截止时间将无法取消，请合理安排时间。</p>
+            <p class="mb-1.5">3. 多次取消或爽约可能影响后续预约资格。</p>
+          </div>
+          <div>
+            <p class="font-semibold text-zinc-700 mb-2">三、签到说明</p>
+            <p class="mb-1.5">1. 请在预约时段开始前 15 分钟或结束前 10 分钟内签到。</p>
+            <p class="mb-1.5">2. 签到时需出示预约成功凭证及身份证明。</p>
+            <p class="mb-1.5">3. 未在有效时间内签到将视为爽约处理。</p>
+          </div>
+          <div>
+            <p class="font-semibold text-zinc-700 mb-2">四、注意事项</p>
+            <p class="mb-1.5">1. 请遵守项目现场管理规定，配合工作人员引导。</p>
+            <p class="mb-1.5">2. 如遇特殊情况，请提前联系客服处理。</p>
+          </div>
+        </div>
+        <div class="shrink-0 px-5 py-4 flex gap-3 border-t border-zinc-50">
+          <button class="flex-1 py-3 rounded-2xl bg-zinc-100 text-zinc-500 font-medium text-sm btn-press" onclick="declineNotice()">不同意</button>
+          <button class="flex-1 py-3 rounded-2xl bg-brand text-white font-semibold text-sm btn-press" onclick="agreeNotice()">同意并继续</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ MODAL: Cancel Confirm ═══════════ -->
+    <div id="modal-cancel" class="absolute inset-0 z-50 hidden flex items-center justify-center">
+      <div class="absolute inset-0 bg-black/40 anim-fade-in" onclick="closeCancelModal()"></div>
+      <div class="relative bg-white rounded-[24px] p-6 mx-8 w-[82%] shadow-xl anim-scale-in">
+        <div class="text-center mb-5">
+          <div class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-3.5">
+            <i class="fas fa-exclamation-triangle text-red-400 text-xl"></i>
+          </div>
+          <h3 class="font-semibold text-zinc-800 text-[16px]">确认取消预约？</h3>
+          <p class="text-xs text-zinc-400 mt-2 leading-relaxed">取消后需重新预约<br>到访前一天 19:00 后不可取消</p>
+        </div>
+        <div class="flex gap-3">
+          <button class="flex-1 py-2.5 rounded-xl bg-zinc-100 text-zinc-500 text-sm font-medium btn-press" onclick="closeCancelModal()">再想想</button>
+          <button class="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-medium btn-press" onclick="confirmCancel()">确认取消</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ TOAST Container ═══════════ -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- ═══════════ MODAL: Rule Error (规则校验弹窗) ═══════════ -->
+    <div id="modal-error" class="error-modal-content hidden">
+      <div class="absolute inset-0 bg-black/40 anim-fade-in" onclick="closeErrorModal()"></div>
+      <div class="error-modal-box shadow-2xl">
+        <!-- Icon Area -->
+        <div class="pt-8 pb-2 flex justify-center">
+          <div id="error-icon-wrap" class="w-[56px] h-[56px] rounded-full bg-amber-50 flex items-center justify-center">
+            <i id="error-icon" class="fas fa-shield-alt text-amber-500 text-xl"></i>
+          </div>
+        </div>
+        <!-- Text -->
+        <div class="px-6 pb-4 text-center">
+          <h3 id="error-title" class="font-semibold text-zinc-800 text-[16px] mb-1">预约失败</h3>
+          <p id="error-reason" class="text-xs text-zinc-500 leading-relaxed mb-3">原因详情</p>
+          <!-- 字段级错误标签 -->
+          <div id="error-fields" class="flex flex-wrap justify-center gap-1.5 mb-3 hidden">
+            <!-- dynamically filled -->
+          </div>
+          <div id="error-suggestion" class="bg-blue-50 rounded-xl px-3 py-2.5">
+            <p class="text-[11px] text-blue-600 leading-relaxed"><i class="fas fa-lightbulb mr-1"></i><span id="error-suggest-text">建议方案</span></p>
+          </div>
+        </div>
+        <!-- Button -->
+        <div class="px-6 pb-6">
+          <button onclick="closeErrorModal()" class="w-full py-3 rounded-2xl bg-brand text-white font-semibold text-sm btn-press shadow-md">我知道了</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ 扫码签到 → 预约客户签到登记 ═══════════ -->
+    <div id="page-checkin-confirm" class="page bg-zinc-50">
+      <!-- ── 项目封面图 ── -->
+      <div class="relative w-full bg-zinc-200 overflow-hidden" style="height:200px;">
+        <div class="absolute inset-0 bg-gradient-to-b from-brand/20 to-brand/5 flex items-center justify-center">
+          <div class="text-center">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-white/80 backdrop-blur flex items-center justify-center shadow-lg mb-3">
+              <i class="fas fa-building text-2xl text-brand"></i>
+            </div>
+            <p class="text-xs text-brand/70 font-medium">翡翠湖畔·云庐</p>
+          </div>
+        </div>
+        <!-- 返回按钮 -->
+        <button class="absolute top-4 left-4 w-8 h-8 rounded-full bg-black/20 backdrop-blur flex items-center justify-center text-white text-xs btn-press" onclick="navigateTo('page-home')">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+      </div>
+
+      <!-- ── 欢迎语 ── -->
+      <div class="px-6 pt-5 pb-1">
+        <h1 class="text-xl font-bold text-zinc-800 anim-slide-up">欢迎您莅临奥利给</h1>
+      </div>
+
+      <!-- ── 预约信息卡片 ── -->
+      <div class="px-6 pb-4">
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-zinc-100 anim-slide-up">
+          <div class="flex items-center gap-3 mb-3 pb-3 border-b border-zinc-50">
+            <div class="w-9 h-9 rounded-full bg-brand-50 flex items-center justify-center">
+              <i class="fas fa-user text-brand text-sm"></i>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-zinc-800">李明</p>
+              <p class="text-[11px] text-zinc-400">人才编号：RC20240588</p>
+            </div>
+          </div>
+          <div class="space-y-2.5">
+            <div class="flex items-center gap-2 text-xs">
+              <i class="fas fa-calendar text-zinc-300 w-4"></i>
+              <span class="text-zinc-400 w-10">日期</span>
+              <span class="text-zinc-700 font-medium">2026-06-15</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+              <i class="fas fa-clock text-zinc-300 w-4"></i>
+              <span class="text-zinc-400 w-10">时段</span>
+              <span class="text-zinc-700 font-medium">10:00 – 11:00</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+              <i class="fas fa-users text-zinc-300 w-4"></i>
+              <span class="text-zinc-400 w-10">陪同</span>
+              <span class="text-zinc-700 font-medium">2人</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 协议勾选 ── -->
+      <div class="px-6 flex-1">
+        <div class="space-y-3 anim-slide-up">
+          <label class="flex items-start gap-2.5 p-3 rounded-xl bg-white border border-zinc-100 cursor-pointer btn-press" onclick="toggleCheckinAgree(this)">
+            <div class="w-5 h-5 rounded-full border-2 border-zinc-200 flex items-center justify-center shrink-0 mt-0.5 transition-colors checkin-check">
+              <i class="fas fa-check text-[10px] text-white hidden"></i>
+            </div>
+            <div>
+              <p class="text-xs text-zinc-700 leading-relaxed">本人已阅读并同意《来访人员登记须知》</p>
+              <p class="text-[10px] text-zinc-400 mt-0.5">点击查看完整须知内容</p>
+            </div>
+          </label>
+          <label class="flex items-start gap-2.5 p-3 rounded-xl bg-white border border-zinc-100 cursor-pointer btn-press" onclick="toggleCheckinAgree(this)">
+            <div class="w-5 h-5 rounded-full border-2 border-zinc-200 flex items-center justify-center shrink-0 mt-0.5 transition-colors checkin-check">
+              <i class="fas fa-check text-[10px] text-white hidden"></i>
+            </div>
+            <div>
+              <p class="text-xs text-zinc-700 leading-relaxed">本人保证以上填写信息真实有效</p>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- ── 登记按钮 ── -->
+      <div class="px-6 pb-8 pt-4">
+        <button id="btn-checkin-register" class="w-full py-3.5 rounded-2xl bg-zinc-200 text-zinc-400 font-semibold text-sm btn-press transition-all duration-300 pointer-events-none" onclick="submitCheckin()">
+          点我登记
+        </button>
+        <p class="text-[10px] text-zinc-300 text-center mt-2">请勾选全部协议后方可登记</p>
+      </div>
+
+      <!-- ── 登记成功弹窗 ── -->
+      <div id="modal-checkin-success" class="absolute inset-0 z-50 hidden flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/40 anim-fade-in" onclick="closeCheckinSuccess()"></div>
+        <div class="relative bg-white rounded-[28px] px-8 py-10 mx-8 w-[78%] max-w-[280px] shadow-2xl text-center anim-scale-in">
+          <div class="w-[68px] h-[68px] mx-auto rounded-full bg-blue-500 flex items-center justify-center mb-5 shadow-lg shadow-blue-500/25">
+            <i class="fas fa-check text-3xl text-white"></i>
+          </div>
+          <h3 class="text-lg font-bold text-zinc-800 mb-1.5">恭喜您，登记成功~</h3>
+          <p class="text-xs text-zinc-400 mb-6">您的到访已记录</p>
+          <button class="w-full py-2.5 rounded-xl bg-blue-500 text-white font-semibold text-sm btn-press shadow-md shadow-blue-500/20" onclick="closeCheckinSuccess()">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ 扫码签到 → 未预约提示 ═══════════ -->
+    <div id="page-checkin-fail" class="page" style="background: linear-gradient(180deg, #FFFBEB 0%, #FFF7ED 30%, #FFFFFF 70%);">
+      <!-- 顶部装饰几何图形 -->
+      <div class="relative w-full overflow-hidden" style="height:160px;">
+        <div class="absolute -top-6 -right-12 w-[180px] h-[180px] rounded-full opacity-[0.06]" style="background:radial-gradient(circle, #f59e0b 0%, transparent 70%);"></div>
+        <div class="absolute top-10 right-8 w-[100px] h-[100px] rounded-3xl opacity-[0.08] rotate-12" style="background: #f59e0b;"></div>
+        <div class="absolute top-20 left-6 w-16 h-16 rounded-2xl opacity-[0.06] -rotate-12" style="background: #d97706;"></div>
+        <div class="absolute top-4 left-12 w-10 h-10 rounded-full border-2 border-amber-200 opacity-30"></div>
+        <div class="absolute bottom-4 right-16 w-6 h-6 rounded-full border border-amber-300 opacity-25"></div>
+        <!-- 曲线装饰 -->
+        <svg class="absolute bottom-0 left-0 w-full" viewBox="0 0 375 40" preserveAspectRatio="none" style="height:40px;">
+          <path d="M0,20 C125,0 250,40 375,20 L375,40 L0,40 Z" fill="#fff" opacity="0.7"/>
+        </svg>
+      </div>
+      <div class="flex-1 flex flex-col items-center justify-center px-8 -mt-6">
+        <div class="w-[72px] h-[72px] rounded-full bg-amber-50 flex items-center justify-center mb-6 shadow-md shadow-amber-100 anim-scale-in">
+          <i class="fas fa-calendar-xmark text-3xl text-amber-500"></i>
+        </div>
+        <h2 class="text-xl font-bold text-zinc-800 anim-slide-up">未查询到预约</h2>
+        <p class="text-sm text-zinc-400 mt-2 text-center leading-relaxed anim-slide-up">请先提前预约再到访<br>感谢您的理解与配合</p>
+        <button class="w-full mt-10 py-3.5 rounded-2xl bg-brand text-white font-semibold text-sm btn-press shadow-md shadow-brand/15" onclick="navigateTo('page-home')">我知道了</button>
+      </div>
+    </div>
+
+    <!-- ═══════════ 扫码签退 → 未预约提示 ═══════════ -->
+    <div id="page-checkout-fail" class="page" style="background: linear-gradient(180deg, #EFF6FF 0%, #F0F9FF 30%, #FFFFFF 70%);">
+      <!-- 顶部装饰几何图形 -->
+      <div class="relative w-full overflow-hidden" style="height:160px;">
+        <div class="absolute -top-6 -right-12 w-[180px] h-[180px] rounded-full opacity-[0.06]" style="background:radial-gradient(circle, #3b82f6 0%, transparent 70%);"></div>
+        <div class="absolute top-10 right-8 w-[100px] h-[100px] rounded-3xl opacity-[0.08] rotate-12" style="background: #3b82f6;"></div>
+        <div class="absolute top-20 left-6 w-16 h-16 rounded-2xl opacity-[0.06] -rotate-12" style="background: #2563eb;"></div>
+        <div class="absolute top-4 left-12 w-10 h-10 rounded-full border-2 border-blue-200 opacity-30"></div>
+        <div class="absolute bottom-4 right-16 w-6 h-6 rounded-full border border-blue-300 opacity-25"></div>
+        <!-- 曲线装饰 -->
+        <svg class="absolute bottom-0 left-0 w-full" viewBox="0 0 375 40" preserveAspectRatio="none" style="height:40px;">
+          <path d="M0,20 C125,0 250,40 375,20 L375,40 L0,40 Z" fill="#fff" opacity="0.7"/>
+        </svg>
+      </div>
+      <div class="flex-1 flex flex-col items-center justify-center px-8 -mt-6">
+        <div class="w-[72px] h-[72px] rounded-full bg-blue-50 flex items-center justify-center mb-6 shadow-md shadow-blue-100 anim-scale-in">
+          <i class="fas fa-circle-check text-3xl text-blue-500"></i>
+        </div>
+        <h2 class="text-xl font-bold text-zinc-800 anim-slide-up">无需签退</h2>
+        <p class="text-sm text-zinc-400 mt-2 text-center leading-relaxed anim-slide-up">您是未预约到访客户<br>无需扫码签退</p>
+        <button class="w-full mt-10 py-3.5 rounded-2xl bg-brand text-white font-semibold text-sm btn-press shadow-md shadow-brand/15" onclick="navigateTo('page-home')">我知道了</button>
+      </div>
+    </div>
+
+  </div><!-- /#app -->
+</div><!-- /phone-frame -->
+
+<script>
+// ══════════════ Navigation ══════════════
+function navigateTo(pageId) {
+  const target = document.getElementById(pageId);
+  if (!target) return;
+
+  // Hide all pages
+  document.querySelectorAll('#app > .page').forEach(p => p.classList.remove('active'));
+
+  // Show target
+  target.classList.add('active');
+
+  // Re-trigger stagger animations
+  target.querySelectorAll('.stagger > *').forEach(el => {
+    el.style.animation = 'none';
+    el.offsetHeight;
+    el.style.animation = '';
+  });
+
+  // Init date strip if navigating to form
+  if (pageId === 'page-form') initDateStrip();
+}
+
+function goBack() { /* placeholder */ }
+
+// ══════════════ Date Strip ══════════════
+const timeSlots = [
+  { time: '09:00-10:00', quota: 3, full: false },
+  { time: '10:00-11:00', quota: 5, full: false },
+  { time: '11:00-12:00', quota: 2, full: false },
+  { time: '14:00-15:00', quota: 0, full: true },
+  { time: '15:00-16:00', quota: 4, full: false },
+  { time: '16:00-17:00', quota: 6, full: false },
+];
+
+let selectedDate = null;
+let selectedSlot = null;
+
+function initDateStrip() {
+  const strip = document.getElementById('dateStrip');
+  if (!strip || strip.children.length > 0) return;
+
+  const today = new Date();
+  const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    const month = d.getMonth() + 1;
+    const day = d.getDate();
+    const wd = weekDays[d.getDay()];
+    const dateStr = `${d.getFullYear()}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isToday = i === 0;
+
+    const chip = document.createElement('div');
+    chip.className = `date-chip w-[54px] py-2.5 rounded-xl border text-center cursor-pointer btn-press flex-shrink-0 ${isToday ? 'today' : ''} ${i === 0 ? 'selected' : 'border-zinc-200 bg-white'}`;
+    chip.setAttribute('data-date', dateStr);
+    chip.innerHTML = `
+      <div class="text-[10px] text-zinc-400 mb-0.5 chip-day">周${wd}</div>
+      <div class="text-[17px] font-semibold text-zinc-700 chip-date">${day}</div>
+      <div class="text-[10px] text-zinc-400 mt-0.5">${month}月</div>
+    `;
+    chip.onclick = function() { selectDate(this, dateStr); };
+    strip.appendChild(chip);
+  }
+
+  // Set defaults
+  if (!selectedDate) {
+    const firstChip = strip.querySelector('.date-chip');
+    if (firstChip) { selectedDate = firstChip.getAttribute('data-date'); }
+  }
+  if (!selectedSlot) {
+    selectedSlot = timeSlots.find(s => !s.full);
+  }
+
+  renderTimeSlots();
+  updateTimeDisplay();
+}
+
+function selectDate(chip, dateStr) {
+  document.querySelectorAll('#dateStrip .date-chip').forEach(c => c.classList.remove('selected'));
+  chip.classList.add('selected');
+  selectedDate = dateStr;
+  updateTimeDisplay();
+}
+
+function renderTimeSlots() {
+  const grid = document.getElementById('timeSlotGrid');
+  if (!grid) return;
+
+  grid.innerHTML = timeSlots.map((s, i) => {
+    const isSel = selectedSlot && selectedSlot.time === s.time;
+    if (s.full) {
+      return `<div class="slot-item full rounded-xl border border-zinc-200 bg-zinc-50 py-3 text-center">
+        <p class="slot-time text-xs text-zinc-400">${s.time}</p>
+        <p class="text-[10px] text-red-400 mt-0.5">已约满</p>
+      </div>`;
+    }
+    return `<div class="slot-item rounded-xl border py-3 text-center cursor-pointer btn-press ${isSel ? 'selected' : 'border-zinc-200 bg-white'}" onclick="selectSlot(${i}, this)" data-idx="${i}">
+      <p class="slot-time text-xs text-zinc-600 font-medium">${s.time}</p>
+      <p class="slot-badge text-[10px] text-zinc-400 mt-0.5">余${s.quota}位</p>
+    </div>`;
+  }).join('');
+}
+
+function selectSlot(idx, el) {
+  const slot = timeSlots[idx];
+  if (slot.full) return;
+
+  selectedSlot = slot;
+
+  // Update visual
+  document.querySelectorAll('#timeSlotGrid .slot-item').forEach(item => item.classList.remove('selected'));
+  el.classList.add('selected');
+
+  updateTimeDisplay();
+}
+
+function updateTimeDisplay() {
+  const display = document.getElementById('selectedTimeDisplay');
+  const quota = document.getElementById('selectedQuota');
+  if (!display || !quota) return;
+
+  if (selectedSlot) {
+    display.textContent = selectedSlot.time;
+    quota.textContent = '余' + selectedSlot.quota + '位';
+  }
+}
+
+// ══════════════ Escort Count ══════════════
+function adjustCount(delta) {
+  const el = document.getElementById('escortCount');
+  let val = parseInt(el.textContent) || 0;
+  val = Math.max(0, Math.min(10, val + delta));
+  el.textContent = val;
+}
+
+// ══════════════ Checkout ══════════════
+function checkoutRecord(btn) {
+  // 找到当前卡片
+  const card = btn.closest('[data-status="visited"]');
+  if (!card) return;
+
+  // 更新状态标签
+  const badge = card.querySelector('.rounded-full');
+  if (badge) {
+    badge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-sky-50 text-sky-600 border border-sky-100';
+    badge.textContent = '已签退';
+  }
+
+  // 更新底部信息
+  const footer = card.querySelector('.border-t');
+  if (footer) {
+    const now = new Date();
+    const timeStr = now.getFullYear() + '-' +
+      String(now.getMonth() + 1).padStart(2, '0') + '-' +
+      String(now.getDate()).padStart(2, '0') + ' ' +
+      String(now.getHours()).padStart(2, '0') + ':' +
+      String(now.getMinutes()).padStart(2, '0');
+    footer.innerHTML = '<span class="text-[10px] text-zinc-400">签退时间：' + timeStr + '</span>';
+  }
+
+  // 更新 data-status
+  card.setAttribute('data-status', 'checked_out');
+
+  // 移除签退按钮
+  btn.remove();
+}
+
+// ══════════════ Detail Page Dynamic Render ══════════════
+function goToDetail(status) {
+  renderDetailPage(status);
+  navigateTo('page-detail');
+}
+
+function renderDetailPage(status) {
+  const statusEl = document.getElementById('detailStatus');
+  const actionsEl = document.getElementById('detailActions');
+  if (!statusEl || !actionsEl) return;
+
+  const configs = {
+    pending: {
+      icon: 'fa-clock',
+      text: '待到访',
+      bgClass: 'bg-amber-50',
+      borderClass: 'border-amber-100',
+      textClass: 'text-amber-600',
+      iconClass: 'text-amber-500',
+      actions: `
+        <button class="w-full py-3 rounded-2xl border border-red-200 text-red-500 text-sm font-medium btn-press" onclick="cancelAppointment()">
+          <i class="fas fa-times mr-1.5"></i>取消预约
+        </button>
+        <p class="text-center text-[10px] text-zinc-400 mt-2">到访前一天 19:00 前可取消预约</p>
+      `
+    },
+    visited: {
+      icon: 'fa-check-circle',
+      text: '已签到',
+      bgClass: 'bg-emerald-50',
+      borderClass: 'border-emerald-100',
+      textClass: 'text-emerald-600',
+      iconClass: 'text-emerald-500',
+      actions: `
+        <button class="w-full py-3 rounded-2xl bg-brand text-white text-sm font-medium btn-press" onclick="detailCheckout()">
+          <i class="fas fa-sign-out-alt mr-1.5"></i>签退
+        </button>
+      `
+    },
+    checked_out: {
+      icon: 'fa-sign-out-alt',
+      text: '已签退',
+      bgClass: 'bg-sky-50',
+      borderClass: 'border-sky-100',
+      textClass: 'text-sky-600',
+      iconClass: 'text-sky-500',
+      actions: ''
+    },
+    cancelled: {
+      icon: 'fa-times-circle',
+      text: '已取消',
+      bgClass: 'bg-zinc-50',
+      borderClass: 'border-zinc-200',
+      textClass: 'text-zinc-500',
+      iconClass: 'text-zinc-400',
+      actions: `<p class="text-center text-xs text-zinc-400 py-3">该预约已取消，如需看房请重新预约</p>`
+    }
+  };
+
+  const cfg = configs[status] || configs.pending;
+
+  statusEl.className = `text-center rounded-2xl p-5 border ${cfg.bgClass} ${cfg.borderClass}`;
+  statusEl.innerHTML = `
+    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white mb-3 border ${cfg.borderClass} shadow-sm">
+      <i class="fas ${cfg.icon} ${cfg.iconClass} text-xs"></i>
+      <span class="text-sm font-medium ${cfg.textClass}">${cfg.text}</span>
+    </div>
+    <p class="text-xs text-zinc-400">预约编号：YY20260615001</p>
+  `;
+
+  actionsEl.innerHTML = cfg.actions;
+}
+
+function detailCheckout() {
+  renderDetailPage('checked_out');
+}
+
+// ══════════════ Modals ══════════════
+function showNoticeModal() {
+  document.getElementById('modal-notice').classList.remove('hidden');
+}
+function closeNoticeModal() {
+  document.getElementById('modal-notice').classList.add('hidden');
+}
+// 点击「预约看房」入口：先跳表单页，再弹须知
+function startBooking() {
+  navigateTo('page-form');
+  // 延迟一点弹窗，等页面切换动画完成
+  setTimeout(function() {
+    document.getElementById('modal-notice').classList.remove('hidden');
+  }, 350);
+}
+// 不同意 → 关闭弹窗，回首页
+function declineNotice() {
+  closeNoticeModal();
+  navigateTo('page-home');
+}
+// 同意并继续 → 关闭弹窗，自动勾选同意checkbox
+function agreeNotice() {
+  closeNoticeModal();
+  const cb = document.querySelector('#page-form input[type=checkbox]');
+  if (cb) cb.checked = true;
+}
+
+function cancelAppointment() {
+  document.getElementById('modal-cancel').classList.remove('hidden');
+}
+function closeCancelModal() {
+  document.getElementById('modal-cancel').classList.add('hidden');
+}
+function confirmCancel() {
+  closeCancelModal();
+  navigateTo('page-list');
+}
+
+// ══════════════ Submit ══════════════
+var currentErrorScene = 0;
+
+// 场景列表：0=正常成功, 1-4=Toast表单校验, 5-12=弹窗规则校验
+var errorScenes = [
+  null,
+  { type:'toast', level:'err', title:'请输入姓名', msg: '姓名为必填项，请填写您的真实姓名' },
+  { type:'toast', level:'err', title:'手机号格式不正确', msg: '请输入正确的11位手机号码' },
+  { type:'toast', level:'warn', title:'请选择预约时段', msg: '您尚未选择看房日期或时段' },
+  { type:'toast', level:'warn', title:'请同意预约须知', msg: '阅读并勾选同意《预约须知》后方可提交' },
+  {
+    type:'modal', icon:'fa-user-xmark', color:'#ef4444', bg:'#FEF2F2',
+    title:'客户姓名不在可预约名单中',
+    reason: '您填写的客户姓名未在可预约人员名单中找到匹配记录，当前项目已开启人员名单验证。',
+    suggest: '请核对姓名是否填写正确，或联系项目管理员将您添加到可预约名单中',
+    fields: [{label:'客户姓名',ok:false},{label:'人才编号',ok:true}]
+  },
+  {
+    type:'modal', icon:'fa-id-card', color:'#ef4444', bg:'#FEF2F2',
+    title:'人才编号不在可预约名单中',
+    reason: '您填写的人才编号未在可预约人员名单中找到匹配记录，当前项目已开启人员名单验证。',
+    suggest: '请核对人才编号是否填写正确（如 RC20240012），或联系管理员添加',
+    fields: [{label:'客户姓名',ok:true},{label:'人才编号',ok:false}]
+  },
+  {
+    type:'modal', icon:'fa-triangle-exclamation', color:'#ef4444', bg:'#FEF2F2',
+    title:'姓名和人才编号均不在名单中',
+    reason: '您填写的客户姓名和人才编号均未在可预约人员名单中找到匹配记录，当前项目已开启人员名单验证。',
+    suggest: '请核对姓名和人才编号是否正确填写，或联系项目管理员将您添加到可预约名单中',
+    fields: [{label:'客户姓名',ok:false},{label:'人才编号',ok:false}]
+  },
+  {
+    type:'modal', icon:'fa-calendar-times', color:'#f59e0b', bg:'#FFFBEB',
+    title:'超出提前预约天数',
+    reason: '当前项目最多允许提前 7 天预约，您选择的日期超出此限制范围。',
+    suggest: '建议选择更近的日期（7天以内）重新预约'
+  },
+  {
+    type:'modal', icon:'fa-history', color:'#f59e0b', bg:'#FFFBEB',
+    title:'重复预约限制',
+    reason: '您在 30 天内已有一次该项目的预约记录（06-05 预约），暂不可重复预约。',
+    suggest: '如需调整，可先取消原预约后再重新提交'
+  },
+  {
+    type:'modal', icon:'fa-users', color:'#f59e0b', bg:'#FFFBEB',
+    title:'所选时段已约满',
+    reason: '您选择的 10:00-11:00 时段已达接待上限（10/10人），暂时无法预约。',
+    suggest: '建议选择其他可用时段，或联系客服咨询加位可能'
+  },
+  {
+    type:'modal', icon:'fa-clock', color:'#ef4444', bg:'#FEF2F2',
+    title:'已超过取消截止时间',
+    reason: '取消需在到访前一天 19:00 前操作，当前已超过截止时间。',
+    suggest: '无法取消本次预约，请您准时到访，谢谢配合'
+  },
+  {
+    type:'modal', icon:'fa-hourglass-end', color:'#f59e0b', bg:'#FFFBEB',
+    title:'不在签到有效时间',
+    reason: '签到需在预约时段开始前 15 分钟至结束前 10 分钟内进行，当前不在有效范围内。',
+    suggest: '请在有效时间窗口内再次尝试签到'
+  }
+];
+
+function submitForm() {
+  var scene = currentErrorScene;
+  if (scene === 0) {
+    // 正常提交 → 成功页
+    navigateTo('page-success');
+    return;
+  }
+  var info = errorScenes[scene];
+  if (!info) return;
+  if (info.type === 'toast') {
+    showToast(info.title, info.msg, info.level);
+  } else if (info.type === 'modal') {
+    showErrorModal(info);
+  }
+}
+
+// ══════════════ Toast System ══════════════
+var toastTimer = null;
+function showToast(title, msg, level) {
+  level = level || 'err';
+  var container = document.getElementById('toast-container');
+  var el = document.createElement('div');
+  el.className = 'toast-item';
+  var iconClass = level === 'err' ? 'fa-exclamation-circle' : 'fa-exclamation-triangle';
+  el.innerHTML = '<div class="toast-icon ' + level + '"><i class="fas ' + iconClass + '"></i></div><div><div class="font-medium text-[13px]">' + title + '</div><div class="text-white/60 text-[11px] mt-0.5">' + msg + '</div></div>';
+  container.appendChild(el);
+
+  // Auto dismiss
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() {
+    el.classList.add('toast-exit');
+    setTimeout(function() { if(el.parentNode) el.parentNode.removeChild(el); }, 250);
+  }, 2200);
+}
+
+// ══════════════ Error Modal (规则校验弹窗) ══════════════
+function showErrorModal(info) {
+  var modal = document.getElementById('modal-error');
+  document.getElementById('error-icon').className = 'fas ' + (info.icon || 'fa-shield-alt') + ' text-xl';
+  document.getElementById('error-icon').style.color = info.color || '#f59e0b';
+  document.getElementById('error-icon-wrap').style.background = info.bg || '#FFFBEB';
+  document.getElementById('error-title').textContent = info.title || '预约失败';
+  document.getElementById('error-reason').textContent = info.reason || '';
+  document.getElementById('error-suggest-text').textContent = info.suggest || '';
+  // 字段级错误标签
+  var fieldsDiv = document.getElementById('error-fields');
+  if (info.fields && info.fields.length > 0) {
+    fieldsDiv.innerHTML = info.fields.map(function(f) {
+      return '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium ' + (f.ok ? 'bg-green-50 text-green-600 border border-green-200' : 'bg-red-50 text-red-500 border border-red-200') + '">' + (f.ok ? '<i class="fas fa-check text-[8px]"></i>' : '<i class="fas fa-times text-[8px]"></i>') + f.label + '</span>';
+    }).join('');
+    fieldsDiv.classList.remove('hidden');
+  } else {
+    fieldsDiv.classList.add('hidden');
+  }
+  modal.classList.remove('hidden');
+}
+function closeErrorModal() {
+  document.getElementById('modal-error').classList.add('hidden');
+}
+
+// ══════════════ Scene Switcher (Demo) ══════════════
+function switchScene(n, btn) {
+  currentErrorScene = n;
+  document.querySelectorAll('.scene-btn').forEach(function(b) {
+    b.classList.remove('active');
+    b.style.background = '';
+    b.style.color = '';
+  });
+  if (btn) {
+    btn.classList.add('active');
+  }
+}
+
+// ══════════════ Checkin Registration ══════════════
+// 切换协议勾选状态
+function toggleCheckinAgree(el) {
+  var check = el.querySelector('.checkin-check');
+  if (!check) return;
+  var icon = check.querySelector('i');
+  if (icon.classList.contains('hidden')) {
+    // 勾选
+    check.classList.add('bg-blue-500', 'border-blue-500');
+    check.classList.remove('border-zinc-200');
+    icon.classList.remove('hidden');
+  } else {
+    // 取消勾选
+    check.classList.remove('bg-blue-500', 'border-blue-500');
+    check.classList.add('border-zinc-200');
+    icon.classList.add('hidden');
+  }
+  updateCheckinBtn();
+}
+
+// 更新登记按钮状态
+function updateCheckinBtn() {
+  var checks = document.querySelectorAll('#page-checkin-confirm .checkin-check');
+  var allChecked = true;
+  checks.forEach(function(c) {
+    if (c.querySelector('i').classList.contains('hidden')) allChecked = false;
+  });
+  var btn = document.getElementById('btn-checkin-register');
+  if (!btn) return;
+  if (allChecked) {
+    btn.classList.remove('bg-zinc-200', 'text-zinc-400', 'pointer-events-none');
+    btn.classList.add('bg-blue-500', 'text-white', 'shadow-md', 'shadow-blue-500/20');
+  } else {
+    btn.classList.add('bg-zinc-200', 'text-zinc-400', 'pointer-events-none');
+    btn.classList.remove('bg-blue-500', 'text-white', 'shadow-md', 'shadow-blue-500/20');
+  }
+}
+
+// 点击登记 → 弹出成功弹窗
+function submitCheckin() {
+  var btn = document.getElementById('btn-checkin-register');
+  if (!btn || btn.classList.contains('pointer-events-none')) return;
+  var modal = document.getElementById('modal-checkin-success');
+  if (modal) modal.classList.remove('hidden');
+}
+
+// 关闭登记成功弹窗
+function closeCheckinSuccess() {
+  var modal = document.getElementById('modal-checkin-success');
+  if (modal) modal.classList.add('hidden');
+  navigateTo('page-home');
+}
+
+// ══════════════ Init ══════════════
+document.addEventListener('DOMContentLoaded', function() {
+  initDateStrip();
+});
+</script>
+
+</body>
+</html>
