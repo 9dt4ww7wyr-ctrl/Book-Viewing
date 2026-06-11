@@ -367,6 +367,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro
               <button class="scene-btn px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap btn-press bg-amber-50 text-amber-600" onclick="switchScene(10,this)">时段已满</button>
               <button class="scene-btn px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap btn-press bg-red-50 text-red-500" onclick="switchScene(11,this)">过取消期</button>
               <button class="scene-btn px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap btn-press bg-amber-50 text-amber-600" onclick="switchScene(12,this)">非签到时</button>
+              <button class="scene-btn px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap btn-press bg-amber-50 text-amber-600" onclick="switchScene(13,this)">不足提前</button>
             </div>
           </div>
           <button class="w-full py-3.5 rounded-2xl bg-brand text-white font-semibold text-[15px] btn-press shadow-md shadow-brand/15 tracking-wide" onclick="submitForm()">
@@ -1094,7 +1095,7 @@ function confirmCancel() {
 // ══════════════ Submit ══════════════
 var currentErrorScene = 0;
 
-// 场景列表：0=正常成功, 1-4=Toast表单校验, 5-12=弹窗规则校验
+// 场景列表：0=正常成功, 1-4=Toast表单校验, 5-13=弹窗规则校验
 var errorScenes = [
   null,
   { type:'toast', level:'err', title:'请输入姓名', msg: '姓名为必填项，请填写您的真实姓名' },
@@ -1151,6 +1152,12 @@ var errorScenes = [
     title:'不在签到有效时间',
     reason: '签到需在预约时段开始前 15 分钟至结束前 10 分钟内进行，当前不在有效范围内。',
     suggest: '请在有效时间窗口内再次尝试签到'
+  },
+  {
+    type:'modal', icon:'fa-calendar-plus', color:'#f59e0b', bg:'#FFFBEB',
+    title:'未满足提前预约天数',
+    reason: '当前项目要求至少提前 1 天预约，今日及当天不可预约看房。',
+    suggest: '请选择明天（06-12）或之后的日期重新提交预约'
   }
 ];
 
