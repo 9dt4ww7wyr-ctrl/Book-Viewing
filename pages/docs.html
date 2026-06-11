@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预约看房 — 功能交互逻辑说明</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: '#f05a28',
+              'brand-light': '#fef3ee',
+              'brand-dark': '#d4491e',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+        :root { --c-brand:#f05a28;--c-brand-l:#fef3ee;--c-brand-d:#d4491e; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        .nav-item { display: block; padding: 10px 16px; font-size: 13px; color: #64748b; border-left: 3px solid transparent; transition: all .15s; cursor: pointer; text-decoration: none; }
+        .nav-item:hover { background: #f8fafc; color: #f05a28; }
+        .nav-item.active { background: #fef3ee; color: #f05a28; border-left-color: #f05a28; font-weight: 600; }
+        .doc-section { scroll-margin-top: 80px; }
+        .section-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size:11px; font-weight:700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 12px; }
+        .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .tbl thead th { text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; background: #f8fafc; border-bottom: 2px solid #e2e8f0; }
+        .tbl tbody td { padding: 9px 14px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+        .tbl tbody tr:hover td { background: #fafafa; }
+        .tbl tbody tr:last-child td { border-bottom: none; }
+        .flow-svg { display: block; margin: 0 auto; }
+        .pill { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .pill-green { background: #dcfce7; color: #166534; }
+        .pill-red { background: #fee2e2; color: #991b1b; }
+        .pill-amber { background: #fef3c7; color: #92400e; }
+        .pill-blue { background: #dbeafe; color: #1e40af; }
+        .pill-gray { background: #f1f5f9; color: #475569; }
+        .pill-brand { background: #fef3ee; color: #f05a28; }
+        .rule-table td:first-child { width: 36px; text-align: center; font-weight: 700; font-size: 14px; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased">
+
+    <!-- Top Bar -->
+    <header class="bg-white border-b border-gray-100 px-6 py-3 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-brand flex items-center justify-center"><i class="fas fa-book-open text-white text-sm"></i></div>
+                <div>
+                    <h1 class="text-base font-bold text-gray-900">功能交互逻辑说明</h1>
+                    <p class="text-xs text-gray-400">预约看房系统 · 各模块业务规则与交互流程</p>
+                </div>
+            </div>
+            <a href="pc-端后台.html" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 hover:text-brand hover:bg-brand-light transition">
+                <i class="fas fa-arrow-left text-[10px]"></i> 返回后台
+            </a>
+        </div>
+    </header>
+
+    <!-- Layout -->
+    <div class="max-w-6xl mx-auto flex">
+        <!-- Sidebar Nav -->
+        <nav class="w-52 shrink-0 bg-white border-r border-gray-100 min-h-[calc(100vh-57px)] sticky top-[57px] py-5">
+            <div class="text-[10px] text-gray-400 uppercase tracking-widest px-4 mb-3 font-bold">功能模块</div>
+            <a href="#section-overview" class="nav-item active" data-nav="overview"><i class="fas fa-compass text-xs mr-2 w-3.5 text-center"></i>总览</a>
+            <a href="#section-notice" class="nav-item" data-nav="notice"><i class="fas fa-clipboard-list text-xs mr-2 w-3.5 text-center"></i>预约须知</a>
+            <a href="#section-fields" class="nav-item" data-nav="fields"><i class="fas fa-pencil-alt text-xs mr-2 w-3.5 text-center"></i>字段配置</a>
+            <a href="#section-capacity" class="nav-item" data-nav="capacity"><i class="fas fa-clock text-xs mr-2 w-3.5 text-center"></i>接待量规则</a>
+            <a href="#section-verify" class="nav-item" data-nav="verify"><i class="fas fa-shield-alt text-xs mr-2 w-3.5 text-center"></i>资格验证</a>
+            <a href="#section-checkin" class="nav-item" data-nav="checkin"><i class="fas fa-qrcode text-xs mr-2 w-3.5 text-center"></i>签到签退</a>
+            <a href="#section-notify" class="nav-item" data-nav="notify"><i class="fas fa-bell text-xs mr-2 w-3.5 text-center"></i>消息通知</a>
+            <a href="#section-records" class="nav-item" data-nav="records"><i class="fas fa-table text-xs mr-2 w-3.5 text-center"></i>预约记录</a>
+        </nav>
+
+        <!-- Content -->
+        <main class="flex-1 p-8 min-w-0 space-y-14">
+
+            <!-- ============ 01 总览 ============ -->
+            <section id="section-overview" class="doc-section">
+                <span class="section-badge" style="background:#fef3ee;color:#f05a28;"><span style="width:18px;height:18px;border-radius:50%;background:#f05a28;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;">1</span> 系统总览</span>
+                <p class="text-sm text-gray-500 leading-relaxed mb-6">本原型为「预约看房」功能的 PC 端后台管理系统，面向<strong class="text-gray-700">项目运营人员</strong>。覆盖从预约规则配置到数据管理的完整链路，包含 <strong class="text-brand">8 大功能模块</strong>。</p>
+
+                <!-- Flowchart: 核心业务流程 -->
+                <h3 class="text-sm font-bold text-gray-700 mb-4">▎核心业务流程</h3>
+                <div class="bg-white rounded-xl border border-gray-200 p-6 mb-6 overflow-x-auto">
+                    <svg class="flow-svg" viewBox="0 0 640 740" width="640" height="740" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <marker id="a-green" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5 Z" fill="#15803d"/></marker>
+                            <marker id="a-red" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5 Z" fill="#dc2626"/></marker>
+                            <marker id="a-gray" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5 Z" fill="#94a3b8"/></marker>
+                            <marker id="a-blue" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5 Z" fill="#2563eb"/></marker>
+                            <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.06"/></filter>
+                        </defs>
+
+                        <!-- ===== Node 1: 进入预约页面 ===== -->
+                        <rect x="235" y="8" width="170" height="36" rx="18" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" filter="url(#shadow)"/>
+                        <text x="320" y="31" text-anchor="middle" fill="#334155" font-size="12" font-weight="600">进入预约页面</text>
+                        <!-- Arrow: 1 → 2 -->
+                        <line x1="320" y1="44" x2="320" y2="68" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a-gray)"/>
+
+                        <!-- ===== Node 2: 填写预约信息 ===== -->
+                        <rect x="230" y="72" width="180" height="52" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5" filter="url(#shadow)"/>
+                        <text x="320" y="93" text-anchor="middle" fill="#1d4ed8" font-size="12" font-weight="700">填写预约信息</text>
+                        <text x="320" y="112" text-anchor="middle" fill="#64748b" font-size="10">基础个人信息 · 看房日期/时间 · 人才编号</text>
+                        <!-- Arrow: 2 → 3 -->
+                        <line x1="320" y1="124" x2="320" y2="148" stroke="#2563eb" stroke-width="1.5" marker-end="url(#a-blue)"/>
+
+                        <!-- ===== Node 3: 是否人才(系统匹配) ===== -->
+                        <polygon points="320,152 430,202 320,252 210,202" fill="#fef3ee" stroke="#f5c9b5" stroke-width="1.5" filter="url(#shadow)"/>
+                        <text x="320" y="198" text-anchor="middle" fill="#f05a28" font-size="11" font-weight="700">是否人才</text>
+                        <text x="320" y="212" text-anchor="middle" fill="#78716c" font-size="10">(系统匹配)</text>
+                        <!-- Label: 是 → 向下 -->
+                        <text x="320" y="268" text-anchor="middle" fill="#15803d" font-size="10" font-weight="600">是</text>
+                        <line x1="320" y1="252" x2="320" y2="278" stroke="#15803d" stroke-width="1.5" marker-end="url(#a-green)"/>
+                        <!-- Branch: 否 → 向右 → 预约失败 -->
+                        <text x="442" y="198" text-anchor="start" fill="#dc2626" font-size="10" font-weight="600">否</text>
+                        <line x1="430" y1="202" x2="500" y2="202" stroke="#dc2626" stroke-width="1.5" marker-end="url(#a-red)"/>
+                        <rect x="505" y="184" width="100" height="36" rx="18" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5" filter="url(#shadow)"/>
+                        <text x="555" y="207" text-anchor="middle" fill="#dc2626" font-size="11" font-weight="600">预约失败</text>
+
+                        <!-- ===== Node 4: 预约成功 ===== -->
+                        <rect x="250" y="282" width="140" height="36" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" filter="url(#shadow)"/>
+                        <text x="320" y="305" text-anchor="middle" fill="#15803d" font-size="12" font-weight="700">预约成功</text>
+                        <!-- Arrow: 4 → 5 -->
+                        <line x1="320" y1="318" x2="320" y2="342" stroke="#15803d" stroke-width="1.5" marker-end="url(#a-green)"/>
+
+                        <!-- ===== Node 5: 是否取消预约 ===== -->
+                        <polygon points="320,346 410,386 320,426 230,386" fill="#fef3ee" stroke="#f5c9b5" stroke-width="1.5" filter="url(#shadow)"/>
+                        <text x="320" y="383" text-anchor="middle" fill="#f05a28" font-size="11" font-weight="700">是否取消预约</text>
+                        <!-- Label: 否 → 向下 -->
+                        <text x="320" y="442" text-anchor="middle" fill="#15803d" font-size="10" font-weight="600">否</text>
+                        <line x1="320" y1="426" x2="320" y2="452" stroke="#15803d" stroke-width="1.5" marker-end="url(#a-green)"/>
+                        <!-- Branch: 是 → 向右 → 流程结束 -->
+                        <text x="422" y="383" text-anchor="start" fill="#dc2626" font-size="10" font-weight="600">是</text>
+                        <line x1="410" y1="386" x2="500" y2="386" stroke="#dc2626" stroke-width="1.5" marker-end="url(#a-red)"/>
+                        <rect x="505" y="368" width="100" height="36" rx="18" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5" filter="url(#shadow)"/>
+                        <text x="555" y="391" text-anchor="middle" fill="#dc2626" font-size="11" font-weight="600">流程结束</text>
+
+                        <!-- ===== Node 6: 是否符合签到时间段 ===== -->
+                        <polygon points="320,456 455,510 320,564 185,510" fill="#fef3ee" stroke="#f5c9b5" stroke-width="1.5" filter="url(#shadow)"/>
+                        <text x="320" y="498" text-anchor="middle" fill="#f05a28" font-size="10" font-weight="700">是否预约时段前15分钟</text>
+                        <text x="320" y="514" text-anchor="middle" fill="#f05a28" font-size="10" font-weight="700">或预约时段结束前10分钟</text>
+                        <!-- Label: 否 → 向下 → 签到登记失败 -->
+                        <text x="320" y="584" text-anchor="middle" fill="#dc2626" font-size="10" font-weight="600">否</text>
+                        <line x1="320" y1="564" x2="320" y2="598" stroke="#dc2626" stroke-width="1.5" marker-end="url(#a-red)"/>
+                        <rect x="250" y="602" width="140" height="36" rx="10" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5" filter="url(#shadow)"/>
+                        <text x="320" y="625" text-anchor="middle" fill="#dc2626" font-size="11" font-weight="600">签到登记失败</text>
+                        <!-- Loop back from 签到登记失败 to node 6 -->
+                        <path d="M250,620 C190,620 170,570 170,510" fill="none" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#a-red)"/>
+
+                        <!-- Branch: 是 → 向右 → 签到登记成功 -->
+                        <text x="467" y="506" text-anchor="start" fill="#15803d" font-size="10" font-weight="600">是</text>
+                        <line x1="455" y1="510" x2="530" y2="510" stroke="#15803d" stroke-width="1.5" marker-end="url(#a-green)"/>
+                        <rect x="535" y="492" width="100" height="36" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" filter="url(#shadow)"/>
+                        <text x="585" y="515" text-anchor="middle" fill="#15803d" font-size="11" font-weight="700">签到登记成功</text>
+
+                        <!-- Arrow: 签到登记成功 → 置业顾问接待 -->
+                        <line x1="585" y1="528" x2="585" y2="550" stroke="#15803d" stroke-width="1.5" marker-end="url(#a-green)"/>
+                        <rect x="525" y="554" width="120" height="36" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5" filter="url(#shadow)"/>
+                        <text x="585" y="577" text-anchor="middle" fill="#1d4ed8" font-size="11" font-weight="600">置业顾问接待</text>
+
+                        <!-- Arrow: 置业顾问接待 → 签退 -->
+                        <line x1="585" y1="590" x2="585" y2="612" stroke="#1d4ed8" stroke-width="1.5" marker-end="url(#a-blue)"/>
+                        <rect x="535" y="616" width="100" height="36" rx="10" fill="#faf5ff" stroke="#d8b4fe" stroke-width="1.5" filter="url(#shadow)"/>
+                        <text x="585" y="639" text-anchor="middle" fill="#9333ea" font-size="11" font-weight="600">签退</text>
+
+                        <!-- Arrow: 签退 → 流程结束 -->
+                        <line x1="585" y1="652" x2="585" y2="674" stroke="#9333ea" stroke-width="1.5" marker-end="url(#a-gray)"/>
+                        <rect x="535" y="678" width="100" height="36" rx="18" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" filter="url(#shadow)"/>
+                        <text x="585" y="701" text-anchor="middle" fill="#475569" font-size="11" font-weight="600">流程结束</text>
+                    </svg>
+                </div>
+
+                <!-- Entrance matrix -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="p-4 rounded-xl border border-orange-100" style="background:linear-gradient(135deg,#fef3ee,#fff7ed);">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-7 h-7 rounded-lg bg-orange-500/10 flex items-center justify-center"><i class="fas fa-mobile-alt text-orange-500 text-xs"></i></span>
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">C 端用户入口</span>
+                        </div>
+                        <div class="text-sm text-gray-700 pl-9">扫码进入小程序 → 填写表单 → 提交预约</div>
+                    </div>
+                    <div class="p-4 rounded-xl border border-gray-200 bg-white">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center"><i class="fas fa-desktop text-blue-500 text-xs"></i></span>
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">PC 端管理入口</span>
+                        </div>
+                        <div class="text-sm text-gray-700 pl-9">配置规则 → 管理记录 → 查看统计</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============ 02 预约须知 ============ -->
+            <section id="section-notice" class="doc-section">
+                <span class="section-badge" style="background:#eff6ff;color:#1d4ed8;"><span style="width:18px;height:18px;border-radius:50%;background:#1d4ed8;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;">2</span> 预约须知设置</span>
+                <p class="text-sm text-gray-500 leading-relaxed mb-5">配置 C 端用户提交预约前<strong>必须阅读并勾选同意</strong>的须知内容。</p>
+
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎功能元素说明</h3>
+                <div class="rounded-xl border border-gray-200 overflow-hidden mb-5">
+                    <table class="tbl">
+                        <thead><tr><th>元素</th><th>类型</th><th>说明</th></tr></thead>
+                        <tbody>
+                            <tr><td class="text-gray-800 font-medium">富文本编辑器</td><td>输入组件</td><td>支持编辑预约须知内容（注意事项、携带证件、参观守则等）</td></tr>
+                            <tr><td class="text-gray-800 font-medium">实时预览区</td><td>展示组件</td><td>即时预览 C 端用户将看到的须知展示效果</td></tr>
+                            <tr><td class="text-gray-800 font-medium">保存按钮</td><td>操作</td><td>保存当前编辑的须知内容</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎交互逻辑</h3>
+                <div class="space-y-2 text-sm text-gray-600">
+                    <div class="flex items-start gap-2 p-2.5 rounded-lg bg-gray-50">
+                        <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-600 text-[10px] flex items-center justify-center font-bold shrink-0 mt-0.5">1</span>
+                        <span>C 端用户提交预约前<strong class="text-gray-800">必须</strong>勾选同意《预约须知》复选框</span>
+                    </div>
+                    <div class="flex items-start gap-2 p-2.5 rounded-lg bg-gray-50">
+                        <span class="w-5 h-5 rounded-full bg-red-100 text-red-500 text-[10px] flex items-center justify-center font-bold shrink-0 mt-0.5">!</span>
+                        <span>未勾选直接提交 → <strong class="text-red-500">Toast 阻断提示</strong>：「请阅读并勾选同意《预约须知》后方可提交」</span>
+                    </div>
+                    <div class="flex items-start gap-2 p-2.5 rounded-lg bg-gray-50">
+                        <span class="w-5 h-5 rounded-full bg-brand/10 text-brand text-[10px] flex items-center justify-center font-bold shrink-0 mt-0.5">→</span>
+                        <span>点击须知链接 → 展开<strong class="text-gray-800">须知弹窗</strong>（350ms 动画）展示完整内容</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============ 03 字段配置 ============ -->
+            <section id="section-fields" class="doc-section">
+                <span class="section-badge" style="background:#f0fdf4;color:#15803d;"><span style="width:18px;height:18px;border-radius:50%;background:#15803d;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;">3</span> 表单字段配置</span>
+                <p class="text-sm text-gray-500 leading-relaxed mb-5">配置 C 端预约表单中展示的字段及其属性。分为<strong class="text-gray-700">预置字段</strong>（不可删）和<strong class="text-gray-700">自定义字段</strong>（可增删改）。</p>
+
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎预置字段清单</h3>
+                <div class="rounded-xl border border-orange-200 bg-orange-50/30 overflow-hidden mb-5">
+                    <table class="tbl">
+                        <thead><tr><th style="width:30px;">#</th><th>字段名</th><th style="width:70px;">类型</th><th style="width:60px;">必填</th><th>校验规则</th></tr></thead>
+                        <tbody>
+                            <tr><td class="text-orange-400 font-bold">1</td><td class="font-medium text-gray-800">项目名称</td><td><span class="pill pill-brand">文本</span></td><td><span class="pill pill-red">必填</span></td><td>—</td></tr>
+                            <tr><td class="text-orange-400 font-bold">2</td><td class="font-medium text-gray-800">客户姓名</td><td><span class="pill pill-brand">文本</span></td><td><span class="pill pill-red">必填</span></td><td>与名单中的姓名匹配</td></tr>
+                            <tr><td class="text-orange-400 font-bold">3</td><td class="font-medium text-gray-800">客户电话</td><td><span class="pill pill-brand">文本</span></td><td><span class="pill pill-red">必填</span></td><td>11 位手机号格式</td></tr>
+                            <tr><td class="text-orange-400 font-bold">4</td><td class="font-medium text-gray-800">人才编号</td><td><span class="pill pill-brand">文本</span></td><td><span class="pill pill-red">必填</span></td><td>与名单中的人才编号匹配</td></tr>
+                            <tr><td class="text-orange-400 font-bold">5</td><td class="font-medium text-gray-800">看房日期</td><td><span class="pill pill-blue">日期</span></td><td><span class="pill pill-red">必填</span></td><td>在可选日期范围内</td></tr>
+                            <tr><td class="text-orange-400 font-bold">6</td><td class="font-medium text-gray-800">看房时段</td><td><span class="pill pill-blue">下拉</span></td><td><span class="pill pill-red">必填</span></td><td>从已配置时段中选择，满员时段置灰</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎自定义字段属性</h3>
+                <div class="rounded-xl border border-blue-200 bg-blue-50/20 overflow-hidden mb-5">
+                    <table class="tbl">
+                        <thead><tr><th style="width:80px;">类型</th><th>输入控件</th><th>适用场景</th><th style="width:80px;">可设必填</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="pill pill-brand">文本</span></td><td>单行输入框</td><td>备注、地址、工号等自由文本</td><td><span class="pill pill-green">✓</span></td></tr>
+                            <tr><td><span class="pill pill-blue">数字</span></td><td>数字步进器</td><td>年龄、工龄、数量等数值</td><td><span class="pill pill-green">✓</span></td></tr>
+                            <tr><td><span class="pill pill-blue">日期</span></td><td>日期选择器</td><td>生日、入职日期等</td><td><span class="pill pill-green">✓</span></td></tr>
+                            <tr><td><span class="pill pill-blue">下拉选项</span></td><td>下拉单选</td><td>性别、部门、意向户型等枚举值</td><td><span class="pill pill-green">✓</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎交互规则</h3>
+                <div class="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                    <div class="p-2.5 rounded-lg bg-gray-50 flex items-start gap-2"><span class="text-brand font-bold">+</span> 点击「新增自定义字段」→ 弹窗选择类型、输入名称、设定必填</div>
+                    <div class="p-2.5 rounded-lg bg-gray-50 flex items-start gap-2"><span class="text-brand font-bold">⚡</span> 每个字段独立开关控制 C 端是否显示</div>
+                    <div class="p-2.5 rounded-lg bg-gray-50 flex items-start gap-2"><span class="text-brand font-bold">↕</span> 自定义字段拖拽排序（hover 显示拖拽手柄）</div>
+                    <div class="p-2.5 rounded-lg bg-gray-50 flex items-start gap-2"><span class="text-red-500 font-bold">✕</span> 预置字段不可删除，仅可控制显隐</div>
+                </div>
+            </section>
+
+            <!-- ============ 04 接待量规则 ============ -->
+            <section id="section-capacity" class="doc-section">
+                <span class="section-badge" style="background:#fffbeb;color:#b45309;"><span style="width:18px;height:18px;border-radius:50%;background:#b45309;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;">4</span> 接待量与规则配置</span>
+                <p class="text-sm text-gray-500 leading-relaxed mb-5">配置可预约时段、接待量上限及各项预约限制规则。</p>
+
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎规则清单</h3>
+                <div class="rounded-xl border border-gray-200 overflow-hidden mb-5 rule-table">
+                    <table class="tbl">
+                        <thead><tr><th style="width:30px;">#</th><th>规则项</th><th style="width:90px;">默认值</th><th>说明</th><th style="width:70px;">拦截级别</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td class="text-amber-500 font-bold">1</td>
+                                <td class="font-medium text-gray-800">时段接待量上限</td><td>10 人/时段</td><td>每时段最大可预约人数，满员后该时段不可再选</td><td><span class="pill pill-amber">阻断</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-amber-500 font-bold">2</td>
+                                <td class="font-medium text-gray-800">最多提前预约天数</td><td>7 天</td><td>用户最多可提前 N 天预约，超出范围日期不可选</td><td><span class="pill pill-amber">阻断</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-red-500 font-bold">3</td>
+                                <td class="font-medium text-gray-800">⚠ 至少提前预约天数</td><td>1 天</td><td>需至少提前 N 天预约（下限），当天不可预约</td><td><span class="pill pill-red">阻断</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-amber-500 font-bold">4</td>
+                                <td class="font-medium text-gray-800">取消预约截止时间</td><td>到访日前一天 19:00</td><td>超时不可取消，C 端取消按钮置灰或隐藏</td><td><span class="pill pill-amber">阻断</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-blue-500 font-bold">5</td>
+                                <td class="font-medium text-gray-800">✨ 陪同人数上限</td><td>3 人</td><td>每位预约客户最多可带 N 名陪同人员，超出需分批</td><td><span class="pill pill-blue">提示</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-amber-500 font-bold">6</td>
+                                <td class="font-medium text-gray-800">重复预约限制</td><td>30 天</td><td>同一人才编号 30 天内仅允许 1 次有效预约</td><td><span class="pill pill-amber">阻断</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎C 端触发场景</h3>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="p-2.5 rounded-lg border border-amber-100 bg-amber-50/50"><span class="pill pill-amber mr-1">时段满员</span>弹窗提示已达上限，建议选择其他时段</div>
+                    <div class="p-2.5 rounded-lg border border-amber-100 bg-amber-50/50"><span class="pill pill-amber mr-1">超出提前天数</span>弹窗提示最多提前 N 天</div>
+                    <div class="p-2.5 rounded-lg border border-red-100 bg-red-50/50"><span class="pill pill-red mr-1">当天不可预约</span>弹窗提示至少提前 N 天</div>
+                    <div class="p-2.5 rounded-lg border border-amber-100 bg-amber-50/50"><span class="pill pill-amber mr-1">30天重复</span>弹窗提示已有记录，先取消原预约</div>
+                    <div class="p-2.5 rounded-lg border border-red-100 bg-red-50/50 col-span-2"><span class="pill pill-red mr-1">超过取消截止</span>详情页取消按钮不可用</div>
+                </div>
+            </section>
+
+            <!-- ============ 05 资格验证 ============ -->
+            <section id="section-verify" class="doc-section">
+                <span class="section-badge" style="background:#faf5ff;color:#7e22ce;"><span style="width:18px;height:18px;border-radius:50%;background:#7e22ce;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;">5</span> 资格验证设置</span>
+                <p class="text-sm text-gray-500 leading-relaxed mb-5">控制哪些人有资格进行预约，通过<strong class="text-gray-700">人员名单</strong>进行身份校验。</p>
+
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎验证流程</h3>
+                <div class="bg-white rounded-xl border border-gray-200 p-5 mb-5 overflow-x-auto">
+                    <svg viewBox="0 0 660 100" width="660" height="100" xmlns="http://www.w3.org/2000/svg" class="flow-svg">
+                        <defs><marker id="av" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#cbd5e1"/></marker></defs>
+                        <rect x="0" y="20" width="130" height="60" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+                        <text x="65" y="46" text-anchor="middle" fill="#334155" font-size="11" font-weight="600">启用资格验证？</text>
+                        <text x="65" y="62" text-anchor="middle" fill="#94a3b8" font-size="9">开关控制</text>
+                        <!-- On -->
+                        <line x1="130" y1="50" x2="168" y2="50" stroke="#cbd5e1" stroke-width="1.5" marker-end="url(#av)"/>
+                        <rect x="175" y="10" width="140" height="38" rx="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.5"/>
+                        <text x="245" y="33" text-anchor="middle" fill="#15803d" font-size="11" font-weight="700">✓ 开启</text>
+                        <line x1="245" y1="48" x2="245" y2="62" stroke="#cbd5e1" stroke-width="1.5"/>
+                        <rect x="175" y="62" width="140" height="28" rx="6" fill="#dcfce7" stroke="#86efac" stroke-width="1"/>
+                        <text x="245" y="80" text-anchor="middle" fill="#166534" font-size="10">姓名 + 编号双重匹配</text>
+                        <!-- Off -->
+                        <line x1="130" y1="50" x2="168" y2="50" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="4,3"/>
+                        <rect x="340" y="10" width="140" height="38" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,2"/>
+                        <text x="410" y="33" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="700">✕ 关闭</text>
+                        <line x1="410" y1="48" x2="410" y2="62" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,2"/>
+                        <rect x="340" y="62" width="140" height="28" rx="6" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1"/>
+                        <text x="410" y="80" text-anchor="middle" fill="#94a3b8" font-size="10">所有人可预约</text>
+                        <line x1="315" y1="29" x2="333" y2="29" stroke="#cbd5e1" stroke-width="1.5" marker-end="url(#av)"/>
+                        <!-- Result -->
+                        <line x1="480" y1="29" x2="518" y2="29" stroke="#cbd5e1" stroke-width="1.5" marker-end="url(#av)"/>
+                        <rect x="525" y="10" width="120" height="38" rx="8" fill="#fef3ee" stroke="#f5c9b5" stroke-width="1.5"/>
+                        <text x="585" y="29" text-anchor="middle" fill="#f05a28" font-size="10" font-weight="700">匹配成功</text>
+                        <text x="585" y="43" text-anchor="middle" fill="#78716c" font-size="9">→ 允许预约</text>
+                        <rect x="525" y="62" width="120" height="28" rx="6" fill="#fee2e2" stroke="#fca5a5" stroke-width="1"/>
+                        <text x="585" y="80" text-anchor="middle" fill="#991b1b" font-size="10">匹配失败 → 阻断</text>
+                    </svg>
+                </div>
+
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎名单管理操作</h3>
+                <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-4">
+                    <div class="p-2.5 rounded-lg bg-gray-50 flex items-center gap-2"><i class="fas fa-download text-purple-400"></i> <strong>下载模板</strong> — 获取标准 Excel 模板（含字段说明）</div>
+                    <div class="p-2.5 rounded-lg bg-gray-50 flex items-center gap-2"><i class="fas fa-upload text-purple-400"></i> <strong>导入名单</strong> — 批量导入 Excel，支持增量覆盖</div>
+                    <div class="p-2.5 rounded-lg bg-gray-50 flex items-center gap-2"><i class="fas fa-plus text-purple-400"></i> <strong>新增人员</strong> — 手动录入（编号* / 姓名* / 手机号* / 身份证 / 备注）</div>
+                    <div class="p-2.5 rounded-lg bg-gray-50 flex items-center gap-2"><i class="fas fa-file-export text-purple-400"></i> <strong>导出</strong> — 导出当前全部人员名单为 Excel</div>
+                </div>
+            </section>
+
+            <!-- ============ 06 签到签退 ============ -->
+            <section id="section-checkin" class="doc-section">
+                <span class="section-badge" style="background:#ecfeff;color:#0e7490;"><span style="width:18px;height:18px;border-radius:50%;background:#0e7490;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;">6</span> 签到签退设置</span>
+                <p class="text-sm text-gray-500 leading-relaxed mb-5">配置到访签到与离场签退的方式。预约码通过接口传给<strong class="text-gray-700">来访登记系统</strong>（运行在 iPad），用户到场后扫码核验。</p>
+
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎签到方式</h3>
+                <div class="mb-5">
+                    <div class="p-4 rounded-xl border-2 border-brand/20 bg-brand/5">
+                        <div class="flex items-center gap-2 mb-1"><i class="fas fa-qrcode text-brand text-sm"></i><span class="text-sm font-bold text-brand">扫码签到</span></div>
+                        <p class="text-xs text-gray-500 leading-relaxed">用户到现场使用微信<strong>扫描 iPad 来访登记系统</strong>中的预约二维码，系统自动校验预约状态与签到规则</p>
+                    </div>
+                </div>
+
+                <!-- Flowchart: 签到判断流程 -->
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎签到判断流程</h3>
+                <div class="bg-white rounded-xl border border-gray-200 p-5 mb-5 overflow-x-auto">
+                    <svg viewBox="0 0 620 280" width="620" height="280" xmlns="http://www.w3.org/2000/svg" class="flow-svg">
+                        <defs>
+                            <marker id="a1" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5 Z" fill="#94a3b8"/></marker>
+                            <marker id="aG" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5 Z" fill="#10b981"/></marker>
+                            <marker id="aR" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5 Z" fill="#ef4444"/></marker>
+                        </defs>
+                        <!-- Step 1: 用户扫码 -->
+                        <rect x="8" y="70" width="100" height="50" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/>
+                        <text x="58" y="92" text-anchor="middle" fill="#1d4ed8" font-size="11" font-weight="700">用户扫码</text>
+                        <text x="58" y="108" text-anchor="middle" fill="#64748b" font-size="9">扫描预约二维码</text>
+                        <!-- Arrow 1→2 -->
+                        <line x1="108" y1="95" x2="148" y2="95" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a1)"/>
+                        <!-- Step 2: 已预约? 菱形 -->
+                        <polygon points="209,65 244,95 209,125 174,95" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                        <text x="209" y="92" text-anchor="middle" fill="#92400e" font-size="10" font-weight="700">已预约?</text>
+                        <text x="209" y="108" text-anchor="middle" fill="#a16207" font-size="8">判断①</text>
+                        <!-- No branch: 未预约 -->
+                        <line x1="174" y1="95" x2="148" y2="95" stroke="#ef4444" stroke-width="1.5" marker-end="url(#aR)"/>
+                        <text x="161" y="88" text-anchor="middle" fill="#ef4444" font-size="9">否</text>
+                        <line x1="148" y1="95" x2="148" y2="180" stroke="#ef4444" stroke-width="1" stroke-dasharray="5,2"/>
+                        <line x1="148" y1="180" x2="100" y2="180" stroke="#ef4444" stroke-width="1" stroke-dasharray="5,2"/>
+                        <polygon points="108,170 100,180 108,190" fill="#ef4444"/>
+                        <rect x="8" y="170" width="90" height="40" rx="8" fill="#fee2e2" stroke="#fca5a5" stroke-width="2"/>
+                        <text x="53" y="188" text-anchor="middle" fill="#991b1b" font-size="10" font-weight="700">✕ 未预约</text>
+                        <text x="53" y="202" text-anchor="middle" fill="#dc2626" font-size="9">提示"请先预约"</text>
+                        <!-- Yes branch: 已预约 -->
+                        <line x1="244" y1="95" x2="280" y2="95" stroke="#10b981" stroke-width="1.5" marker-end="url(#aG)"/>
+                        <text x="262" y="88" text-anchor="middle" fill="#10b981" font-size="9">是</text>
+                        <rect x="288" y="70" width="100" height="50" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="2"/>
+                        <text x="338" y="92" text-anchor="middle" fill="#15803d" font-size="11" font-weight="700">✓ 已预约</text>
+                        <text x="338" y="108" text-anchor="middle" fill="#64748b" font-size="9">进入规则校验</text>
+                        <!-- Arrow to 满足规则? -->
+                        <line x1="388" y1="95" x2="430" y2="95" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a1)"/>
+                        <!-- Step 3: 满足规则? 菱形 -->
+                        <polygon points="491,65 526,95 491,125 456,95" fill="#ede9fe" stroke="#a855f7" stroke-width="2"/>
+                        <text x="491" y="92" text-anchor="middle" fill="#6b21a8" font-size="10" font-weight="700">满足规则?</text>
+                        <text x="491" y="108" text-anchor="middle" fill="#7e22ce" font-size="8">判断②</text>
+                        <!-- Yes: 签到成功 -->
+                        <line x1="526" y1="95" x2="560" y2="95" stroke="#10b981" stroke-width="1.5" marker-end="url(#aG)"/>
+                        <text x="543" y="88" text-anchor="middle" fill="#10b981" font-size="9">是</text>
+                        <rect x="8" y="230" width="200" height="36" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="2"/>
+                        <text x="108" y="248" text-anchor="middle" fill="#15803d" font-size="11" font-weight="700">✅ 签到成功 · 记录签到时间</text>
+                        <line x1="526" y1="125" x2="526" y2="255" stroke="#10b981" stroke-width="1" stroke-dasharray="4,2"/>
+                        <line x1="526" y1="255" x2="208" y2="255" stroke="#10b981" stroke-width="1" marker-end="url(#aG)"/>
+                        <line x1="208" y1="255" x2="208" y2="248" stroke="#10b981" stroke-width="1"/>
+                        <!-- No: 不满足 -->
+                        <line x1="456" y1="95" x2="425" y2="95" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5,2" marker-end="url(#aR)"/>
+                        <text x="441" y="88" text-anchor="middle" fill="#ef4444" font-size="9">否</text>
+                        <rect x="260" y="170" width="210" height="40" rx="8" fill="#fee2e2" stroke="#fca5a5" stroke-width="2"/>
+                        <text x="365" y="188" text-anchor="middle" fill="#991b1b" font-size="10" font-weight="700">✕ 不满足规则 · 提示对应原因</text>
+                        <text x="365" y="202" text-anchor="middle" fill="#dc2626" font-size="9">如"非预约客户或未到预约时间"、"预约时段即将结束"</text>
+                        <line x1="456" y1="125" x2="456" y2="195" stroke="#ef4444" stroke-width="1" stroke-dasharray="4,2"/>
+                        <line x1="456" y1="195" x2="470" y2="195" stroke="#ef4444" stroke-width="1" marker-end="url(#aR)"/>
+                    </svg>
+                </div>
+
+                <!-- Flowchart: 签退场景 -->
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎签退场景</h3>
+                <div class="bg-white rounded-xl border border-gray-200 p-5 mb-5 overflow-x-auto">
+                    <svg viewBox="0 0 620 160" width="620" height="160" xmlns="http://www.w3.org/2000/svg" class="flow-svg">
+                        <defs>
+                            <marker id="a2" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5 Z" fill="#94a3b8"/></marker>
+                            <marker id="aG2" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5 Z" fill="#10b981"/></marker>
+                            <marker id="aR2" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5 Z" fill="#ef4444"/></marker>
+                        </defs>
+                        <!-- Step 1: 用户离场扫码 -->
+                        <rect x="8" y="55" width="105" height="50" rx="10" fill="#ecfeff" stroke="#67e8f9" stroke-width="2"/>
+                        <text x="60" y="77" text-anchor="middle" fill="#0e7490" font-size="11" font-weight="700">用户离场</text>
+                        <text x="60" y="93" text-anchor="middle" fill="#64748b" font-size="9">扫码签退</text>
+                        <!-- Arrow to C端 -->
+                        <line x1="113" y1="80" x2="148" y2="80" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a2)"/>
+                        <!-- Step 2: C端签退页 -->
+                        <rect x="155" y="55" width="110" height="50" rx="10" fill="#f0f9ff" stroke="#7dd3fc" stroke-width="2"/>
+                        <text x="210" y="77" text-anchor="middle" fill="#0369a1" font-size="11" font-weight="700">C端签退页</text>
+                        <text x="210" y="93" text-anchor="middle" fill="#64748b" font-size="9">点击签到签退</text>
+                        <!-- Arrow to 判断 -->
+                        <line x1="265" y1="80" x2="310" y2="80" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a2)"/>
+                        <!-- Step 3: 预约客户? 菱形 -->
+                        <polygon points="371,50 406,80 371,110 336,80" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+                        <text x="371" y="77" text-anchor="middle" fill="#92400e" font-size="10" font-weight="700">预约的</text>
+                        <text x="371" y="93" text-anchor="middle" fill="#a16207" font-size="8">到访客户?</text>
+                        <!-- No branch -->
+                        <line x1="336" y1="80" x2="310" y2="80" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5,2" marker-end="url(#aR2)"/>
+                        <text x="323" y="73" text-anchor="middle" fill="#ef4444" font-size="9">否</text>
+                        <rect x="155" y="110" width="145" height="36" rx="8" fill="#fee2e2" stroke="#fca5a5" stroke-width="2"/>
+                        <text x="227" y="128" text-anchor="middle" fill="#991b1b" font-size="10" font-weight="700">✕ 提示"无需签退"</text>
+                        <text x="227" y="142" text-anchor="middle" fill="#dc2626" font-size="9">非预约到访客户无需签退</text>
+                        <line x1="371" y1="110" x2="371" y2="133" stroke="#ef4444" stroke-width="1" stroke-dasharray="4,2"/>
+                        <line x1="371" y1="133" x2="300" y2="133" stroke="#ef4444" stroke-width="1" marker-end="url(#aR2)"/>
+                        <!-- Yes branch -->
+                        <line x1="406" y1="80" x2="445" y2="80" stroke="#10b981" stroke-width="1.5" marker-end="url(#aG2)"/>
+                        <text x="426" y="73" text-anchor="middle" fill="#10b981" font-size="9">是</text>
+                        <rect x="453" y="55" width="110" height="50" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="2"/>
+                        <text x="508" y="77" text-anchor="middle" fill="#15803d" font-size="11" font-weight="700">✅ 签退成功</text>
+                        <text x="508" y="93" text-anchor="middle" fill="#64748b" font-size="9">记录签退时间</text>
+                    </svg>
+                    <div class="mt-3 pt-2 border-t border-gray-100 text-[10px] text-gray-400">用户离场时扫描 iPad 来访登记系统的签退二维码 → 打开C端签退页 → 点击签退后系统校验身份</div>
+                </div>
+
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎时间规则与二维码</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <div class="p-2.5 rounded-lg bg-gray-50 text-xs flex items-start gap-2">
+                            <span class="pill pill-green shrink-0 mt-0.5">提前</span>
+                            <span>时段开始前 <strong>15 分钟</strong>可签到，不足 → "<span class="text-red-500">非预约客户或未到预约时间</span>"</span>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-gray-50 text-xs flex items-start gap-2">
+                            <span class="pill pill-red shrink-0 mt-0.5">迟到</span>
+                            <span>距结束前 <strong>10 分钟</strong>停止签到，超时 → "<span class="text-red-500">预约时段即将结束，无法签到</span>"</span>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-gray-50 text-xs flex items-start gap-2">
+                            <span class="pill pill-gray shrink-0 mt-0.5">超时</span>
+                            <span>未签到自动标记为「<strong>未到场</strong>」违约 → <span class="text-red-500">锁定 N 天不可再次预约</span></span>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="p-2.5 rounded-lg bg-brand-light border border-brand/10 text-xs flex items-center gap-2">
+                            <span class="w-5 h-5 rounded bg-brand text-white text-[9px] flex items-center justify-center font-bold shrink-0">约</span>
+                            <span>预约码 · 来访登记系统生成 · 用户到场扫码核验</span>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-blue-50 border border-blue-100 text-xs flex items-center gap-2">
+                            <span class="w-5 h-5 rounded bg-blue-500 text-white text-[9px] flex items-center justify-center font-bold shrink-0">退</span>
+                            <span>签退码 · 来访登记系统生成 · 离场扫码确认签退</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============ 07 消息通知 ============ -->
+            <section id="section-notify" class="doc-section">
+                <span class="section-badge" style="background:#fdf2f8;color:#be185d;"><span style="width:18px;height:18px;border-radius:50%;background:#be185d;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;">7</span> 消息通知设置</span>
+                <p class="text-sm text-gray-500 leading-relaxed mb-5">配置预约各环节的消息推送通知，每个节点可独立控制开关与渠道。</p>
+
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎通知节点清单</h3>
+                <div class="rounded-xl border border-gray-200 overflow-hidden mb-5">
+                    <table class="tbl">
+                        <thead><tr><th style="width:30px;">#</th><th>通知节点</th><th>触发时机</th><th style="width:100px;">接收方</th><th>内容</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td class="text-green-500 font-bold">1</td>
+                                <td class="font-medium text-gray-800">预约成功通知</td>
+                                <td>用户提交预约后</td>
+                                <td><span class="pill pill-green">用户</span></td>
+                                <td>短信/微信通知，含预约详情（日期、时段、须知）</td>
+                            </tr>
+                            <tr>
+                                <td class="text-blue-500 font-bold">2</td>
+                                <td class="font-medium text-gray-800">签到提醒通知</td>
+                                <td>预约时段开始前 N 小时</td>
+                                <td><span class="pill pill-blue">用户</span></td>
+                                <td>提醒按时到场签到（N 可在规则中配置）</td>
+                            </tr>
+                            <tr>
+                                <td class="text-amber-500 font-bold">3</td>
+                                <td class="font-medium text-gray-800">新预约通知</td>
+                                <td>有新预约提交时</td>
+                                <td><span class="pill pill-amber">管理员</span></td>
+                                <td>通知管理员有新的预约记录待处理</td>
+                            </tr>
+                            <tr>
+                                <td class="text-red-500 font-bold">4</td>
+                                <td class="font-medium text-gray-800">取消预约通知</td>
+                                <td>用户取消预约后</td>
+                                <td><span class="pill pill-red">双方</span></td>
+                                <td>同步通知管理员该预约已取消</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎配置能力</h3>
+                <div class="grid grid-cols-3 gap-2 text-xs text-gray-600">
+                    <div class="p-2.5 rounded-lg bg-gray-50">每个通知节点<strong>独立开关</strong>控制</div>
+                    <div class="p-2.5 rounded-lg bg-gray-50">支持配置<strong>通知渠道</strong>（短信/微信/站内）</div>
+                    <div class="p-2.5 rounded-lg bg-gray-50">通知模板<strong>内容可自定义</strong></div>
+                </div>
+            </section>
+
+            <!-- ============ 08 预约记录 ============ -->
+            <section id="section-records" class="doc-section">
+                <span class="section-badge" style="background:#eef2ff;color:#4338ca;"><span style="width:18px;height:18px;border-radius:50%;background:#4338ca;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;">8</span> 预约记录</span>
+                <p class="text-sm text-gray-500 leading-relaxed mb-5">查看和管理所有用户的预约记录，支持搜索、筛选、导出及状态流转管理。</p>
+
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎列表字段</h3>
+                <div class="rounded-xl border border-gray-200 overflow-hidden mb-5">
+                    <table class="tbl">
+                        <thead><tr><th style="width:30px;">#</th><th>字段</th><th style="width:70px;">类型</th><th>说明</th></tr></thead>
+                        <tbody>
+                            <tr><td class="text-indigo-400 font-bold">1</td><td class="font-medium text-gray-800">预约编号</td><td>文本</td><td>系统自动生成的唯一标识</td></tr>
+                            <tr><td class="text-indigo-400 font-bold">2</td><td class="font-medium text-gray-800">客户姓名</td><td>文本</td><td>来自预约表单</td></tr>
+                            <tr><td class="text-indigo-400 font-bold">3</td><td class="font-medium text-gray-800">手机号</td><td>文本</td><td>脱敏展示中间 4 位</td></tr>
+                            <tr><td class="text-indigo-400 font-bold">4</td><td class="font-medium text-gray-800">人才编号</td><td>文本</td><td>身份校验关键字段</td></tr>
+                            <tr><td class="text-indigo-400 font-bold">5</td><td class="font-medium text-gray-800">看房日期</td><td>日期</td><td>用户选择的预约日期</td></tr>
+                            <tr><td class="text-indigo-400 font-bold">6</td><td class="font-medium text-gray-800">看房时段</td><td>枚举</td><td>用户选择的时段（如 09:00-10:00）</td></tr>
+                            <tr><td class="text-indigo-400 font-bold">7</td><td class="font-medium text-gray-800">陪同人数</td><td>数字</td><td>记录随行人员数量</td></tr>
+                            <tr><td class="text-indigo-400 font-bold">8</td><td class="font-medium text-gray-800">预约状态</td><td>枚举</td><td>见下方状态表</td></tr>
+                            <tr><td class="text-indigo-400 font-bold">9</td><td class="font-medium text-gray-800">预约时间</td><td>时间戳</td><td>用户提交预约的时间</td></tr>
+                            <tr><td class="text-indigo-400 font-bold">10</td><td class="font-medium text-gray-800">操作</td><td>按钮组</td><td>详情 / 取消（条件显示）</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎预约状态</h3>
+                <div class="rounded-xl border border-gray-200 overflow-hidden mb-5">
+                    <table class="tbl">
+                        <thead><tr><th style="width:80px;">状态</th><th style="width:70px;">标识色</th><th>含义</th><th>可执行操作</th></tr></thead>
+                        <tbody>
+                            <tr><td class="font-medium text-amber-600">待到访</td><td><span class="pill pill-amber">待处理</span></td><td>预约已提交，等待到访日</td><td>查看详情 · 取消预约（未超期时）</td></tr>
+                            <tr><td class="font-medium text-green-600">已签到</td><td><span class="pill pill-green">进行中</span></td><td>用户已到场扫码签到</td><td>查看详情</td></tr>
+                            <tr><td class="font-medium text-emerald-600">已签退</td><td><span class="pill pill-green">已完成</span></td><td>用户已离场扫码签退</td><td>查看详情</td></tr>
+                            <tr><td class="font-medium text-gray-500">已取消</td><td><span class="pill pill-gray">已结束</span></td><td>用户主动取消或管理员取消</td><td>查看详情</td></tr>
+                            <tr><td class="font-medium text-red-500">未到场</td><td><span class="pill pill-red">违约</span></td><td>超时未签到，自动违约标记</td><td>查看详情</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎状态流转</h3>
+                <div class="bg-white rounded-xl border border-gray-200 p-4 mb-5 overflow-x-auto">
+                    <svg viewBox="0 0 680 65" width="680" height="65" xmlns="http://www.w3.org/2000/svg" class="flow-svg">
+                        <defs><marker id="as" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"/></marker></defs>
+                        <rect x="0" y="15" width="90" height="35" rx="17" fill="#fef3c7" stroke="#f59e0b" stroke-width="1.5"/>
+                        <text x="45" y="37" text-anchor="middle" fill="#92400e" font-size="11" font-weight="600">待到访</text>
+                        <line x1="90" y1="32" x2="130" y2="32" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#as)"/>
+                        <rect x="138" y="15" width="90" height="35" rx="17" fill="#dcfce7" stroke="#10b981" stroke-width="1.5"/>
+                        <text x="183" y="37" text-anchor="middle" fill="#166534" font-size="11" font-weight="600">已签到</text>
+                        <line x1="228" y1="32" x2="268" y2="32" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#as)"/>
+                        <rect x="276" y="15" width="90" height="35" rx="17" fill="#d1fae5" stroke="#34d399" stroke-width="1.5"/>
+                        <text x="321" y="37" text-anchor="middle" fill="#065f46" font-size="11" font-weight="600">已签退</text>
+                        <!-- 待到访 → 已取消 -->
+                        <line x1="45" y1="50" x2="45" y2="58" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,2"/>
+                        <line x1="45" y1="58" x2="408" y2="58" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,2"/>
+                        <line x1="408" y1="58" x2="408" y2="50" stroke="#94a3b8" stroke-width="1"/>
+                        <rect x="363" y="15" width="90" height="35" rx="17" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5"/>
+                        <text x="408" y="37" text-anchor="middle" fill="#475569" font-size="11" font-weight="600">已取消</text>
+                        <!-- 待到访 → 未到场 -->
+                        <line x1="45" y1="50" x2="45" y2="58" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,2"/>
+                        <line x1="45" y1="58" x2="553" y2="58" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,2"/>
+                        <line x1="553" y1="58" x2="553" y2="50" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,2"/>
+                        <rect x="508" y="15" width="90" height="35" rx="17" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
+                        <text x="553" y="37" text-anchor="middle" fill="#991b1b" font-size="11" font-weight="600">未到场</text>
+                    </svg>
+                </div>
+
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎功能操作</h3>
+                <div class="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                    <div class="p-2.5 rounded-lg bg-gray-50 flex items-start gap-2"><i class="fas fa-search text-indigo-400 mt-0.5"></i><div><strong class="text-gray-700">搜索</strong> — 按姓名 / 手机号 / 人才编号模糊搜索</div></div>
+                    <div class="p-2.5 rounded-lg bg-gray-50 flex items-start gap-2"><i class="fas fa-filter text-indigo-400 mt-0.5"></i><div><strong class="text-gray-700">筛选</strong> — 按日期范围、预约状态筛选</div></div>
+                    <div class="p-2.5 rounded-lg bg-gray-50 flex items-start gap-2"><i class="fas fa-eye text-indigo-400 mt-0.5"></i><div><strong class="text-gray-700">详情</strong> — 弹窗展示完整预约信息（双列布局）</div></div>
+                    <div class="p-2.5 rounded-lg bg-gray-50 flex items-start gap-2"><i class="fas fa-ban text-red-400 mt-0.5"></i><div><strong class="text-gray-700">取消</strong> — 二次确认弹窗（红色警告）仅在「待到访」且未超期时显示</div></div>
+                    <div class="p-2.5 rounded-lg bg-gray-50 flex items-start gap-2 col-span-2"><i class="fas fa-download text-indigo-400 mt-0.5"></i><div><strong class="text-gray-700">导出</strong> — 一键导出当前筛选结果为 Excel · <strong class="text-gray-700">分页</strong> — 默认每页 15 条，支持翻页跳转</div></div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Scroll spy -->
+    <script>
+    (function() {
+        var navItems = document.querySelectorAll('.nav-item');
+        var sections = document.querySelectorAll('.doc-section');
+        var ticking = false;
+        function updateNav() {
+            var scrollPos = window.scrollY + 100;
+            var current = sections[0].id;
+            sections.forEach(function(sec) {
+                if (sec.offsetTop <= scrollPos) current = sec.id;
+            });
+            var navKey = current.replace('section-', '');
+            navItems.forEach(function(item) {
+                item.classList.toggle('active', item.getAttribute('data-nav') === navKey);
+            });
+        }
+        window.addEventListener('scroll', function() {
+            if (!ticking) {
+                requestAnimationFrame(function() { updateNav(); ticking = false; });
+                ticking = true;
+            }
+        });
+        updateNav();
+    })();
+    </script>
+</body>
+</html>
