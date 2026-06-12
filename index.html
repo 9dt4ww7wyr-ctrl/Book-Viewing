@@ -151,16 +151,18 @@
         /* ========== Flow Section ========== */
         .flow-section { background:white; }
         .flow-container { position:relative; }
-        .flow-steps { display:flex; align-items:flex-start; gap:0; position:relative; padding: 40px 0 20px; }
-        .flow-line { position:absolute; top:72px; left:80px; right:80px; height:3px; background: linear-gradient(90deg, var(--brand-c), var(--brand-pc), #667eea, #28c840); border-radius:2px; opacity:0.2; }
-        .flow-step { flex:1; text-align:center; position:relative; padding:0 12px; }
-        .flow-step-num { width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800; color:white; margin:0 auto 16px; position:relative; z-index:2; box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
-        .step-num-1 { background:var(--gradient-c); }
-        .step-num-2 { background:var(--gradient-pc); }
+        .flow-steps { display:flex; align-items:flex-start; gap:0; position:relative; padding: 50px 0 30px; }
+        .flow-line { position:absolute; top:80px; left:90px; right:90px; height:3px; background: linear-gradient(90deg, #d4855e, #f05a28, #667eea, #28c840); border-radius:2px; opacity:0.18; }
+        .flow-step { flex:1; text-align:center; position:relative; padding:0 16px; }
+        .flow-step-num { width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; color:white; margin:0 auto 18px; position:relative; z-index:2; box-shadow: 0 6px 24px rgba(0,0,0,0.15); transition: transform .3s, box-shadow .3s; }
+        .flow-step:hover .flow-step-num { transform: scale(1.08); box-shadow: 0 10px 32px rgba(0,0,0,0.22); }
+        .step-num-1 { background:linear-gradient(135deg, #d4855e 0%, #e8a87c 100%); }
+        .step-num-2 { background:linear-gradient(135deg, #f05a28 0%, #ff7a4d 100%); }
         .step-num-3 { background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
         .step-num-4 { background:linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
-        .flow-step-title { font-size:15px; font-weight:700; color:var(--text-primary); margin-bottom:6px; }
-        .flow-step-desc { font-size:13px; color:var(--text-muted); line-height:1.55; max-width:200px; margin:0 auto; }
+        .flow-step-title { font-size:16px; font-weight:700; color:var(--text-primary); margin-bottom:8px; letter-spacing:-0.2px; }
+        .flow-step-desc { font-size:13px; color:var(--text-muted); line-height:1.65; max-width:220px; margin:0 auto; }
+        .flow-arrow { position:absolute; top:78px; right:-14px; width:28px; height:28px; z-index:3; color:#ddd; font-size:20px; display:flex; align-items:center; justify-content:center; }
 
         /* ========== Specs Table ========== */
         .specs-section { background:var(--bg-secondary); }
@@ -207,6 +209,7 @@
             .specs-grid { grid-template-columns:1fr; }
             .flow-steps { flex-wrap: wrap; justify-content:center; gap:30px; }
             .flow-line { display:none; }
+            .flow-arrow { display:none; }
             .section-title { font-size:30px; }
         }
         @media (max-width:640px) {
@@ -429,15 +432,24 @@
                     <div class="flow-step-title">配置规则</div>
                     <div class="flow-step-desc">管理员在 PC 后台配置预约规则：时段、接待量、人员名单、字段设置等</div>
                 </div>
+                <div style="position:relative;">
+                    <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
                 <div class="flow-step">
                     <div class="flow-step-num step-num-2">2</div>
                     <div class="flow-step-title">用户预约</div>
                     <div class="flow-step-desc">C端用户扫码进入小程序 → 填写表单 → 系统自动校验规则 → 提交成功</div>
                 </div>
+                <div style="position:relative;">
+                    <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
+                </div>
                 <div class="flow-step">
                     <div class="flow-step-num step-num-3">3</div>
                     <div class="flow-step-title">签到签退</div>
                     <div class="flow-step-desc">用户到访出示预约码 → 管理员扫码确认签到 → 接待完成后操作签退</div>
+                </div>
+                <div style="position:relative;">
+                    <div class="flow-arrow"><i class="fas fa-chevron-right"></i></div>
                 </div>
                 <div class="flow-step">
                     <div class="flow-step-num step-num-4">4</div>
