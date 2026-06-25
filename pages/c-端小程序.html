@@ -454,7 +454,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro
               <div class="flex items-center justify-between">
                 <span class="text-[10px] text-zinc-400">签到时间：2026-06-08 14:05</span>
                 <button class="text-[11px] font-medium text-brand px-3 py-1 rounded-full bg-brand-50 border border-brand/10 btn-press" onclick="event.stopPropagation();checkoutRecord(this)">
-                  <i class="fas fa-sign-out-alt mr-1"></i>签退
+                  <i class="fas fa-star mr-1"></i>服务评价
                 </button>
               </div>
             </div>
@@ -465,7 +465,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro
             <div class="p-4">
               <div class="flex items-center justify-between mb-2.5">
                 <span class="text-sm font-semibold text-zinc-800">翡翠湖畔·云庐</span>
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-sky-50 text-sky-600 border border-sky-100">已签退</span>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-sky-50 text-sky-600 border border-sky-100">已评价</span>
               </div>
               <div class="flex items-center gap-4 text-xs text-zinc-400">
                 <span><i class="far fa-calendar mr-1"></i>2026-06-06</span>
@@ -476,7 +476,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro
               </div>
             </div>
             <div class="border-t border-zinc-50 px-4 py-2.5 bg-zinc-50/50">
-              <span class="text-[10px] text-zinc-400">签退时间：2026-06-06 10:20</span>
+              <span class="text-[10px] text-zinc-400">评价时间：2026-06-06 10:20</span>
             </div>
           </div>
 
@@ -803,7 +803,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro
         <div class="w-[72px] h-[72px] rounded-full bg-blue-50 flex items-center justify-center mb-6 shadow-md shadow-blue-100 anim-scale-in">
           <i class="fas fa-circle-check text-3xl text-blue-500"></i>
         </div>
-        <h2 class="text-xl font-bold text-zinc-800 anim-slide-up">无需签退</h2>
+        <h2 class="text-xl font-bold text-zinc-800 anim-slide-up">无需评价</h2>
         <p class="text-sm text-zinc-400 mt-2 text-center leading-relaxed anim-slide-up">您是未预约到访客户<br>无需扫码服务评价</p>
         <button class="w-full mt-10 py-3.5 rounded-2xl bg-brand text-white font-semibold text-sm btn-press shadow-md shadow-brand/15" onclick="navigateTo('page-home')">我知道了</button>
       </div>
@@ -1165,7 +1165,7 @@ function checkoutRecord(btn) {
   const badge = card.querySelector('.rounded-full');
   if (badge) {
     badge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-sky-50 text-sky-600 border border-sky-100';
-    badge.textContent = '已签退';
+    badge.textContent = '已评价';
   }
 
   // 更新底部信息
@@ -1177,13 +1177,13 @@ function checkoutRecord(btn) {
       String(now.getDate()).padStart(2, '0') + ' ' +
       String(now.getHours()).padStart(2, '0') + ':' +
       String(now.getMinutes()).padStart(2, '0');
-    footer.innerHTML = '<span class="text-[10px] text-zinc-400">签退时间：' + timeStr + '</span>';
+    footer.innerHTML = '<span class="text-[10px] text-zinc-400">评价时间：' + timeStr + '</span>';
   }
 
   // 更新 data-status
   card.setAttribute('data-status', 'checked_out');
 
-  // 移除签退按钮
+  // 移除评价按钮
   btn.remove();
 }
 
@@ -1222,13 +1222,13 @@ function renderDetailPage(status) {
       iconClass: 'text-emerald-500',
       actions: `
         <button class="w-full py-3 rounded-2xl bg-brand text-white text-sm font-medium btn-press" onclick="detailCheckout()">
-          <i class="fas fa-sign-out-alt mr-1.5"></i>签退
+          <i class="fas fa-star mr-1.5"></i>服务评价
         </button>
       `
     },
     checked_out: {
-      icon: 'fa-sign-out-alt',
-      text: '已签退',
+      icon: 'fa-star',
+      text: '已评价',
       bgClass: 'bg-sky-50',
       borderClass: 'border-sky-100',
       textClass: 'text-sky-600',
