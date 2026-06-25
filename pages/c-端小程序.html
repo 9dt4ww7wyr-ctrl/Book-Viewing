@@ -206,7 +206,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro
               <i class="fas fa-qrcode mr-1.5"></i>扫码签到 → 未预约提示
             </button>
             <button class="w-full py-2.5 rounded-xl bg-blue-50 text-blue-700 text-xs font-medium btn-press hover:bg-blue-100 transition-colors" onclick="navigateTo('page-checkout-fail')">
-              <i class="fas fa-sign-out-alt mr-1.5"></i>扫码签退 → 无需签退提示
+              <i class="fas fa-star mr-1.5"></i>服务评价 → 无需签退提示
+            </button>
+            <button class="w-full py-2.5 rounded-xl bg-rose-50 text-rose-700 text-xs font-medium btn-press hover:bg-rose-100 transition-colors" onclick="navigateTo('page-service-review')">
+              <i class="fas fa-pen mr-1.5"></i>服务评价 → 需写评价
             </button>
           </div>
         </div>
@@ -302,7 +305,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro
                 <label class="text-[11px] text-zinc-400 mb-0.5 block tracking-wide">看房时段 <span class="text-red-400">*</span></label>
                 <span class="text-sm text-zinc-800 font-medium" id="selectedTimeDisplay">10:00 - 11:00</span>
               </div>
-              <span class="text-[10px] text-zinc-400 bg-zinc-100 rounded-full px-2.5 py-1" id="selectedQuota">余5位</span>
+              <span class="text-[10px] text-zinc-400 bg-zinc-100 rounded-full px-2.5 py-1" id="selectedQuota">余5组</span>
             </div>
           </div>
 
@@ -336,6 +339,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro
                   <button class="w-7 h-7 rounded-full bg-brand-50 border border-brand/20 flex items-center justify-center text-brand text-sm btn-press" onclick="adjustCount(1)">+</button>
                 </div>
               </div>
+              <p class="text-[11px] text-zinc-400 px-4 -mt-2 mb-1">陪同人员最多只能 3 位</p>
             </div>
           </div>
 
@@ -800,8 +804,114 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro
           <i class="fas fa-circle-check text-3xl text-blue-500"></i>
         </div>
         <h2 class="text-xl font-bold text-zinc-800 anim-slide-up">无需签退</h2>
-        <p class="text-sm text-zinc-400 mt-2 text-center leading-relaxed anim-slide-up">您是未预约到访客户<br>无需扫码签退</p>
+        <p class="text-sm text-zinc-400 mt-2 text-center leading-relaxed anim-slide-up">您是未预约到访客户<br>无需扫码服务评价</p>
         <button class="w-full mt-10 py-3.5 rounded-2xl bg-brand text-white font-semibold text-sm btn-press shadow-md shadow-brand/15" onclick="navigateTo('page-home')">我知道了</button>
+      </div>
+    </div>
+
+    <!-- ═══════════ 服务评价 - 需写评价 ═══════════ -->
+    <div id="page-service-review" class="page" style="background: linear-gradient(180deg, #FFF5F5 0%, #FFFFFF 40%);">
+      <!-- 顶部装饰 -->
+      <div class="relative w-full overflow-hidden" style="height:160px;">
+        <div class="absolute -top-6 -right-12 w-[180px] h-[180px] rounded-full opacity-[0.06]" style="background:radial-gradient(circle, #f43f5e 0%, transparent 70%);"></div>
+        <div class="absolute top-10 right-8 w-[100px] h-[100px] rounded-3xl opacity-[0.08] rotate-12" style="background: #f43f5e;"></div>
+        <div class="absolute top-20 left-6 w-16 h-16 rounded-2xl opacity-[0.06] -rotate-12" style="background: #e11d48;"></div>
+        <div class="absolute top-4 left-12 w-10 h-10 rounded-full border-2 border-rose-200 opacity-30"></div>
+        <svg class="absolute bottom-0 left-0 w-full" viewBox="0 0 375 40" preserveAspectRatio="none" style="height:40px;">
+          <path d="M0,20 C125,0 250,40 375,20 L375,40 L0,40 Z" fill="#fff" opacity="0.7"/>
+        </svg>
+      </div>
+
+      <div class="flex-1 px-5 -mt-4 pb-6 overflow-y-auto anim-slide-up">
+        <!-- 标题 -->
+        <div class="text-center mb-6">
+          <div class="w-[64px] h-[64px] rounded-full bg-rose-50 flex items-center justify-center mx-auto mb-4 shadow-md shadow-rose-100 anim-scale-in">
+            <i class="fas fa-star-half-alt text-2xl text-rose-500"></i>
+          </div>
+          <h2 class="text-xl font-bold text-zinc-800">服务评价</h2>
+          <p class="text-xs text-zinc-400 mt-1.5">请对本次看房服务进行评价，帮助我们持续改进</p>
+        </div>
+
+        <!-- 评价表单 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-zinc-100 overflow-hidden">
+          <!-- 整体评分 -->
+          <div class="px-4 py-4 border-b border-zinc-50">
+            <p class="text-sm text-zinc-700 font-medium mb-3">整体满意度 <span class="text-rose-400">*</span></p>
+            <div class="flex items-center gap-6" id="reviewStars">
+              <button class="flex flex-col items-center gap-1" onclick="setRating(1)">
+                <i class="fas fa-star text-2xl text-zinc-200" id="star-1"></i>
+                <span class="text-[10px] text-zinc-400">很差</span>
+              </button>
+              <button class="flex flex-col items-center gap-1" onclick="setRating(2)">
+                <i class="fas fa-star text-2xl text-zinc-200" id="star-2"></i>
+                <span class="text-[10px] text-zinc-400">较差</span>
+              </button>
+              <button class="flex flex-col items-center gap-1" onclick="setRating(3)">
+                <i class="fas fa-star text-2xl text-zinc-200" id="star-3"></i>
+                <span class="text-[10px] text-zinc-400">一般</span>
+              </button>
+              <button class="flex flex-col items-center gap-1" onclick="setRating(4)">
+                <i class="fas fa-star text-2xl text-zinc-200" id="star-4"></i>
+                <span class="text-[10px] text-zinc-400">满意</span>
+              </button>
+              <button class="flex flex-col items-center gap-1" onclick="setRating(5)">
+                <i class="fas fa-star text-2xl text-zinc-200" id="star-5"></i>
+                <span class="text-[10px] text-zinc-400">非常满意</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 服务态度 -->
+          <div class="px-4 py-4 border-b border-zinc-50">
+            <p class="text-sm text-zinc-700 font-medium mb-3">服务态度 <span class="text-rose-400">*</span></p>
+            <div class="flex gap-2" id="serviceAttitude">
+              <button class="px-4 py-2 rounded-full text-xs font-medium border border-zinc-200 text-zinc-500 transition-all" onclick="selectTag(this,'serviceAttitude')">热情专业</button>
+              <button class="px-4 py-2 rounded-full text-xs font-medium border border-zinc-200 text-zinc-500 transition-all" onclick="selectTag(this,'serviceAttitude')">耐心细致</button>
+              <button class="px-4 py-2 rounded-full text-xs font-medium border border-zinc-200 text-zinc-500 transition-all" onclick="selectTag(this,'serviceAttitude')">响应及时</button>
+              <button class="px-4 py-2 rounded-full text-xs font-medium border border-zinc-200 text-zinc-500 transition-all" onclick="selectTag(this,'serviceAttitude')">态度一般</button>
+            </div>
+          </div>
+
+          <!-- 房源匹配 -->
+          <div class="px-4 py-4 border-b border-zinc-50">
+            <p class="text-sm text-zinc-700 font-medium mb-3">房源匹配度 <span class="text-rose-400">*</span></p>
+            <div class="flex gap-2" id="houseMatch">
+              <button class="px-4 py-2 rounded-full text-xs font-medium border border-zinc-200 text-zinc-500 transition-all" onclick="selectTag(this,'houseMatch')">非常匹配</button>
+              <button class="px-4 py-2 rounded-full text-xs font-medium border border-zinc-200 text-zinc-500 transition-all" onclick="selectTag(this,'houseMatch')">基本符合</button>
+              <button class="px-4 py-2 rounded-full text-xs font-medium border border-zinc-200 text-zinc-500 transition-all" onclick="selectTag(this,'houseMatch')">差距较大</button>
+            </div>
+          </div>
+
+          <!-- 文字评价 -->
+          <div class="px-4 py-4">
+            <p class="text-sm text-zinc-700 font-medium mb-3">补充评价</p>
+            <textarea placeholder="请输入您的评价或建议（选填）" rows="3" class="w-full text-sm text-zinc-800 bg-zinc-50 rounded-xl px-3.5 py-2.5 outline-none placeholder-zinc-300 border border-zinc-100 focus:border-rose-300 focus:ring-1 focus:ring-rose-100 transition-all resize-none"></textarea>
+          </div>
+        </div>
+
+        <!-- 提交按钮 -->
+        <button class="w-full mt-5 py-3.5 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-400 text-white font-semibold text-sm btn-press shadow-lg shadow-rose-200/50" onclick="submitReview()">
+          确定并提交
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══════════ 服务评价成功 ═══════════ -->
+    <div id="page-review-success" class="page" style="background: linear-gradient(180deg, #FFF5F5 0%, #FFFFFF 40%);">
+      <div class="relative w-full overflow-hidden" style="height:160px;">
+        <div class="absolute -top-6 -right-12 w-[180px] h-[180px] rounded-full opacity-[0.06]" style="background:radial-gradient(circle, #10b981 0%, transparent 70%);"></div>
+        <div class="absolute top-10 right-8 w-[100px] h-[100px] rounded-3xl opacity-[0.08] rotate-12" style="background: #10b981;"></div>
+        <svg class="absolute bottom-0 left-0 w-full" viewBox="0 0 375 40" preserveAspectRatio="none" style="height:40px;">
+          <path d="M0,20 C125,0 250,40 375,20 L375,40 L0,40 Z" fill="#fff" opacity="0.7"/>
+        </svg>
+      </div>
+      <div class="flex-1 flex flex-col items-center justify-center px-8 -mt-6">
+        <div class="w-[72px] h-[72px] rounded-full bg-emerald-50 flex items-center justify-center mb-6 shadow-md shadow-emerald-100 anim-scale-in">
+          <i class="fas fa-circle-check text-3xl text-emerald-500"></i>
+        </div>
+        <h2 class="text-xl font-bold text-zinc-800 anim-slide-up">评价提交成功</h2>
+        <p class="text-sm text-zinc-400 mt-2 text-center leading-relaxed anim-slide-up">感谢您的宝贵意见，我们将持续改进服务质量</p>
+        <button class="w-full mt-10 py-3.5 rounded-2xl bg-brand text-white font-semibold text-sm btn-press shadow-md shadow-brand/15" onclick="navigateTo('page-home')">返回首页</button>
       </div>
     </div>
 
@@ -908,7 +1018,7 @@ function renderTimeSlots() {
     }
     return `<div class="slot-item rounded-xl border py-3 text-center cursor-pointer btn-press ${isSel ? 'selected' : 'border-zinc-200 bg-white'}" onclick="selectSlot(${i}, this)" data-idx="${i}">
       <p class="slot-time text-xs text-zinc-600 font-medium">${s.time}</p>
-      <p class="slot-badge text-[10px] text-zinc-400 mt-0.5">余${s.quota}位</p>
+      <p class="slot-badge text-[10px] text-zinc-400 mt-0.5">余${s.quota}组</p>
     </div>`;
   }).join('');
 }
@@ -933,7 +1043,7 @@ function updateTimeDisplay() {
 
   if (selectedSlot) {
     display.textContent = selectedSlot.time;
-    quota.textContent = '余' + selectedSlot.quota + '位';
+    quota.textContent = '余' + selectedSlot.quota + '组';
   }
 }
 
@@ -941,8 +1051,51 @@ function updateTimeDisplay() {
 function adjustCount(delta) {
   const el = document.getElementById('escortCount');
   let val = parseInt(el.textContent) || 0;
-  val = Math.max(0, Math.min(10, val + delta));
+  val = Math.max(0, Math.min(3, val + delta));
   el.textContent = val;
+  if (val >= 3) {
+    showToast('陪同人员最多只能 3 位', 'warning');
+  }
+}
+
+// ══════════════ 服务评价 ══════════════
+let currentRating = 0;
+
+function setRating(n) {
+  currentRating = n;
+  for (let i = 1; i <= 5; i++) {
+    const star = document.getElementById('star-' + i);
+    if (star) {
+      star.className = i <= n
+        ? 'fas fa-star text-2xl text-amber-400'
+        : 'fas fa-star text-2xl text-zinc-200';
+    }
+  }
+}
+
+function selectTag(btn, groupId) {
+  const group = document.getElementById(groupId);
+  if (!group) return;
+  group.querySelectorAll('button').forEach(b => {
+    b.className = 'px-4 py-2 rounded-full text-xs font-medium border border-zinc-200 text-zinc-500 transition-all';
+  });
+  btn.className = 'px-4 py-2 rounded-full text-xs font-medium border-2 border-rose-300 bg-rose-50 text-rose-600 transition-all';
+}
+
+function submitReview() {
+  if (currentRating === 0) {
+    showToast('请选择整体满意度', 'warning');
+    return;
+  }
+  // Show success page
+  navigateTo('page-review-success');
+  // Reset
+  setTimeout(() => {
+    setRating(0);
+    document.querySelectorAll('#serviceAttitude button, #houseMatch button').forEach(b => {
+      b.className = 'px-4 py-2 rounded-full text-xs font-medium border border-zinc-200 text-zinc-500 transition-all';
+    });
+  }, 300);
 }
 
 // ══════════════ Checkout ══════════════
