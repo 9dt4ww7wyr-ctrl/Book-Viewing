@@ -836,38 +836,23 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro
           <!-- 整体评分 -->
           <div class="px-4 py-4 border-b border-zinc-50">
             <p class="text-sm text-zinc-700 font-medium mb-3">整体满意度 <span class="text-rose-400">*</span></p>
-            <div class="flex items-center gap-6" id="reviewStars">
-              <button class="flex flex-col items-center gap-1" onclick="setRating(1)">
-                <i class="fas fa-star text-2xl text-zinc-200" id="star-1"></i>
-                <span class="text-[10px] text-zinc-400">很差</span>
-              </button>
-              <button class="flex flex-col items-center gap-1" onclick="setRating(2)">
-                <i class="fas fa-star text-2xl text-zinc-200" id="star-2"></i>
-                <span class="text-[10px] text-zinc-400">较差</span>
-              </button>
-              <button class="flex flex-col items-center gap-1" onclick="setRating(3)">
-                <i class="fas fa-star text-2xl text-zinc-200" id="star-3"></i>
-                <span class="text-[10px] text-zinc-400">一般</span>
-              </button>
-              <button class="flex flex-col items-center gap-1" onclick="setRating(4)">
-                <i class="fas fa-star text-2xl text-zinc-200" id="star-4"></i>
-                <span class="text-[10px] text-zinc-400">满意</span>
-              </button>
-              <button class="flex flex-col items-center gap-1" onclick="setRating(5)">
-                <i class="fas fa-star text-2xl text-zinc-200" id="star-5"></i>
-                <span class="text-[10px] text-zinc-400">非常满意</span>
-              </button>
+            <div class="flex items-center gap-5" id="reviewStars">
+              <button onclick="setRating(1)"><i class="fas fa-star text-2xl text-zinc-200" id="star-1"></i></button>
+              <button onclick="setRating(2)"><i class="fas fa-star text-2xl text-zinc-200" id="star-2"></i></button>
+              <button onclick="setRating(3)"><i class="fas fa-star text-2xl text-zinc-200" id="star-3"></i></button>
+              <button onclick="setRating(4)"><i class="fas fa-star text-2xl text-zinc-200" id="star-4"></i></button>
+              <button onclick="setRating(5)"><i class="fas fa-star text-2xl text-zinc-200" id="star-5"></i></button>
             </div>
           </div>
 
-          <!-- 服务态度 -->
+          <!-- 服务态度（多选） -->
           <div class="px-4 py-4 border-b border-zinc-50">
-            <p class="text-sm text-zinc-700 font-medium mb-3">服务态度 <span class="text-rose-400">*</span></p>
-            <div class="flex gap-2" id="serviceAttitude">
-              <button class="px-4 py-2 rounded-full text-xs font-medium border border-zinc-200 text-zinc-500 transition-all" onclick="selectTag(this,'serviceAttitude')">热情专业</button>
-              <button class="px-4 py-2 rounded-full text-xs font-medium border border-zinc-200 text-zinc-500 transition-all" onclick="selectTag(this,'serviceAttitude')">耐心细致</button>
-              <button class="px-4 py-2 rounded-full text-xs font-medium border border-zinc-200 text-zinc-500 transition-all" onclick="selectTag(this,'serviceAttitude')">响应及时</button>
-              <button class="px-4 py-2 rounded-full text-xs font-medium border border-zinc-200 text-zinc-500 transition-all" onclick="selectTag(this,'serviceAttitude')">态度一般</button>
+            <p class="text-sm text-zinc-700 font-medium mb-1">服务态度 <span class="text-rose-400">*</span> <span class="text-[10px] text-zinc-400 font-normal ml-1">可多选</span></p>
+            <div class="flex gap-2 mt-3" id="serviceAttitude">
+              <button class="px-4 py-2 rounded-full text-xs font-medium border border-zinc-200 text-zinc-500 transition-all" onclick="toggleMultiTag(this)">热情专业</button>
+              <button class="px-4 py-2 rounded-full text-xs font-medium border border-zinc-200 text-zinc-500 transition-all" onclick="toggleMultiTag(this)">耐心细致</button>
+              <button class="px-4 py-2 rounded-full text-xs font-medium border border-zinc-200 text-zinc-500 transition-all" onclick="toggleMultiTag(this)">响应及时</button>
+              <button class="px-4 py-2 rounded-full text-xs font-medium border border-zinc-200 text-zinc-500 transition-all" onclick="toggleMultiTag(this)">态度一般</button>
             </div>
           </div>
 
@@ -896,26 +881,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro
           <div class="px-4 py-4 border-b border-zinc-50">
             <p class="text-sm text-zinc-700 font-medium mb-3">样板间整体满意度 <span class="text-rose-400">*</span></p>
             <div class="flex items-center gap-5" id="showRoomRating">
-              <button class="flex flex-col items-center gap-1" onclick="setSubRating('showRoomRating',1)">
-                <i class="fas fa-star text-xl text-zinc-200" id="showroom-1"></i>
-                <span class="text-[10px] text-zinc-400">很差</span>
-              </button>
-              <button class="flex flex-col items-center gap-1" onclick="setSubRating('showRoomRating',2)">
-                <i class="fas fa-star text-xl text-zinc-200" id="showroom-2"></i>
-                <span class="text-[10px] text-zinc-400">较差</span>
-              </button>
-              <button class="flex flex-col items-center gap-1" onclick="setSubRating('showRoomRating',3)">
-                <i class="fas fa-star text-xl text-zinc-200" id="showroom-3"></i>
-                <span class="text-[10px] text-zinc-400">一般</span>
-              </button>
-              <button class="flex flex-col items-center gap-1" onclick="setSubRating('showRoomRating',4)">
-                <i class="fas fa-star text-xl text-zinc-200" id="showroom-4"></i>
-                <span class="text-[10px] text-zinc-400">满意</span>
-              </button>
-              <button class="flex flex-col items-center gap-1" onclick="setSubRating('showRoomRating',5)">
-                <i class="fas fa-star text-xl text-zinc-200" id="showroom-5"></i>
-                <span class="text-[10px] text-zinc-400">非常满意</span>
-              </button>
+              <button onclick="setSubRating('showRoomRating',1)"><i class="fas fa-star text-xl text-zinc-200" id="showroom-1"></i></button>
+              <button onclick="setSubRating('showRoomRating',2)"><i class="fas fa-star text-xl text-zinc-200" id="showroom-2"></i></button>
+              <button onclick="setSubRating('showRoomRating',3)"><i class="fas fa-star text-xl text-zinc-200" id="showroom-3"></i></button>
+              <button onclick="setSubRating('showRoomRating',4)"><i class="fas fa-star text-xl text-zinc-200" id="showroom-4"></i></button>
+              <button onclick="setSubRating('showRoomRating',5)"><i class="fas fa-star text-xl text-zinc-200" id="showroom-5"></i></button>
             </div>
           </div>
 
@@ -923,26 +893,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro
           <div class="px-4 py-4 border-b border-zinc-50">
             <p class="text-sm text-zinc-700 font-medium mb-3">社区与配套满意度 <span class="text-rose-400">*</span></p>
             <div class="flex items-center gap-5" id="communityRating">
-              <button class="flex flex-col items-center gap-1" onclick="setSubRating('communityRating',1)">
-                <i class="fas fa-star text-xl text-zinc-200" id="community-1"></i>
-                <span class="text-[10px] text-zinc-400">很差</span>
-              </button>
-              <button class="flex flex-col items-center gap-1" onclick="setSubRating('communityRating',2)">
-                <i class="fas fa-star text-xl text-zinc-200" id="community-2"></i>
-                <span class="text-[10px] text-zinc-400">较差</span>
-              </button>
-              <button class="flex flex-col items-center gap-1" onclick="setSubRating('communityRating',3)">
-                <i class="fas fa-star text-xl text-zinc-200" id="community-3"></i>
-                <span class="text-[10px] text-zinc-400">一般</span>
-              </button>
-              <button class="flex flex-col items-center gap-1" onclick="setSubRating('communityRating',4)">
-                <i class="fas fa-star text-xl text-zinc-200" id="community-4"></i>
-                <span class="text-[10px] text-zinc-400">满意</span>
-              </button>
-              <button class="flex flex-col items-center gap-1" onclick="setSubRating('communityRating',5)">
-                <i class="fas fa-star text-xl text-zinc-200" id="community-5"></i>
-                <span class="text-[10px] text-zinc-400">非常满意</span>
-              </button>
+              <button onclick="setSubRating('communityRating',1)"><i class="fas fa-star text-xl text-zinc-200" id="community-1"></i></button>
+              <button onclick="setSubRating('communityRating',2)"><i class="fas fa-star text-xl text-zinc-200" id="community-2"></i></button>
+              <button onclick="setSubRating('communityRating',3)"><i class="fas fa-star text-xl text-zinc-200" id="community-3"></i></button>
+              <button onclick="setSubRating('communityRating',4)"><i class="fas fa-star text-xl text-zinc-200" id="community-4"></i></button>
+              <button onclick="setSubRating('communityRating',5)"><i class="fas fa-star text-xl text-zinc-200" id="community-5"></i></button>
             </div>
           </div>
 
@@ -950,26 +905,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro
           <div class="px-4 py-4 border-b border-zinc-50">
             <p class="text-sm text-zinc-700 font-medium mb-3">案场环境与卫生满意度 <span class="text-rose-400">*</span></p>
             <div class="flex items-center gap-5" id="environmentRating">
-              <button class="flex flex-col items-center gap-1" onclick="setSubRating('environmentRating',1)">
-                <i class="fas fa-star text-xl text-zinc-200" id="env-1"></i>
-                <span class="text-[10px] text-zinc-400">很差</span>
-              </button>
-              <button class="flex flex-col items-center gap-1" onclick="setSubRating('environmentRating',2)">
-                <i class="fas fa-star text-xl text-zinc-200" id="env-2"></i>
-                <span class="text-[10px] text-zinc-400">较差</span>
-              </button>
-              <button class="flex flex-col items-center gap-1" onclick="setSubRating('environmentRating',3)">
-                <i class="fas fa-star text-xl text-zinc-200" id="env-3"></i>
-                <span class="text-[10px] text-zinc-400">一般</span>
-              </button>
-              <button class="flex flex-col items-center gap-1" onclick="setSubRating('environmentRating',4)">
-                <i class="fas fa-star text-xl text-zinc-200" id="env-4"></i>
-                <span class="text-[10px] text-zinc-400">满意</span>
-              </button>
-              <button class="flex flex-col items-center gap-1" onclick="setSubRating('environmentRating',5)">
-                <i class="fas fa-star text-xl text-zinc-200" id="env-5"></i>
-                <span class="text-[10px] text-zinc-400">非常满意</span>
-              </button>
+              <button onclick="setSubRating('environmentRating',1)"><i class="fas fa-star text-xl text-zinc-200" id="env-1"></i></button>
+              <button onclick="setSubRating('environmentRating',2)"><i class="fas fa-star text-xl text-zinc-200" id="env-2"></i></button>
+              <button onclick="setSubRating('environmentRating',3)"><i class="fas fa-star text-xl text-zinc-200" id="env-3"></i></button>
+              <button onclick="setSubRating('environmentRating',4)"><i class="fas fa-star text-xl text-zinc-200" id="env-4"></i></button>
+              <button onclick="setSubRating('environmentRating',5)"><i class="fas fa-star text-xl text-zinc-200" id="env-5"></i></button>
             </div>
           </div>
 
@@ -1178,6 +1118,15 @@ function setSubRating(groupId, n) {
         ? 'fas fa-star text-xl text-amber-400'
         : 'fas fa-star text-xl text-zinc-200';
     }
+  }
+}
+
+function toggleMultiTag(btn) {
+  const isActive = btn.classList.contains('border-brand');
+  if (isActive) {
+    btn.className = 'px-4 py-2 rounded-full text-xs font-medium border border-zinc-200 text-zinc-500 transition-all';
+  } else {
+    btn.className = 'px-4 py-2 rounded-full text-xs font-medium border-2 border-brand bg-brand/5 text-brand transition-all';
   }
 }
 
