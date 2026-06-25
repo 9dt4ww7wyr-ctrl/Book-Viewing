@@ -206,7 +206,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro
               <i class="fas fa-qrcode mr-1.5"></i>扫码签到 → 未预约提示
             </button>
             <button class="w-full py-2.5 rounded-xl bg-blue-50 text-blue-700 text-xs font-medium btn-press hover:bg-blue-100 transition-colors" onclick="navigateTo('page-checkout-fail')">
-              <i class="fas fa-star mr-1.5"></i>服务评价 → 无需签退提示
+              <i class="fas fa-star mr-1.5"></i>服务评价 → 无需评价提示
             </button>
             <button class="w-full py-2.5 rounded-xl bg-rose-50 text-rose-700 text-xs font-medium btn-press hover:bg-rose-100 transition-colors" onclick="navigateTo('page-service-review')">
               <i class="fas fa-pen mr-1.5"></i>服务评价 → 需写评价
@@ -1220,11 +1220,7 @@ function renderDetailPage(status) {
       borderClass: 'border-emerald-100',
       textClass: 'text-emerald-600',
       iconClass: 'text-emerald-500',
-      actions: `
-        <button class="w-full py-3 rounded-2xl bg-brand text-white text-sm font-medium btn-press" onclick="detailCheckout()">
-          <i class="fas fa-star mr-1.5"></i>服务评价
-        </button>
-      `
+      actions: ''
     },
     checked_out: {
       icon: 'fa-star',
