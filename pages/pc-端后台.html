@@ -131,7 +131,7 @@
                         </div>
                         <div class="flex items-center gap-3 shrink-0">
                             <button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-brand text-sm text-brand font-medium hover:bg-brand/5 transition shadow-sm" onclick="showCheckoutQrModal()">
-                                <i class="fas fa-qrcode"></i>签退二维码
+                                <i class="fas fa-qrcode"></i>服务评价二维码
                             </button>
                             <button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-dark transition shadow-sm" onclick="showQRModal()">
                                 <i class="fas fa-qrcode"></i>项目预约二维码
@@ -1413,7 +1413,7 @@
             ctx.fillStyle='#ffffff';
             ctx.font='bold 14px -apple-system, sans-serif';
             ctx.textAlign='center'; ctx.textBaseline='middle';
-            ctx.fillText('签到签退', size/2, size/2);
+            ctx.fillText('服务评价', size/2, size/2);
 
             // Check icon (bottom-right of QR) - green checkmark style
             ctx.fillStyle='#10b981';
@@ -1559,7 +1559,7 @@
         <div class="bg-white rounded-2xl w-[520px] max-w-[95vw] shadow-2xl overflow-hidden">
             <!-- Header -->
             <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                <h3 class="text-base font-semibold text-gray-800">签退二维码</h3>
+                <h3 class="text-base font-semibold text-gray-800">服务评价二维码</h3>
                 <button onclick="closeCheckoutQrModal()" class="w-7 h-7 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition">
                     <i class="fas fa-times"></i>
                 </button>
@@ -1567,7 +1567,7 @@
             <!-- Body -->
             <div class="p-6">
                 <div class="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-5">
-                    <p class="text-xs text-blue-700 leading-relaxed"><i class="fas fa-info-circle mr-1.5 text-blue-500"></i>客户完成看房后出示此二维码进行签退确认，系统将记录签退时间</p>
+                    <p class="text-xs text-blue-700 leading-relaxed"><i class="fas fa-info-circle mr-1.5 text-blue-500"></i>客户完成看房后扫描此二维码进行服务评价，系统将记录评价内容</p>
                 </div>
                 <div class="flex justify-center">
                     <canvas id="pcCheckoutQrCanvas" width="240" height="240" class="rounded-xl shadow-sm border border-gray-100"></canvas>
@@ -1752,7 +1752,7 @@
                         <p>3. 未取消也未按时签到核销，将进入7天锁定期。</p>
                         <p style="margin-top:12px;"><strong>三、签到签退规则</strong></p>
                         <p>1. 预约时段开始前15分钟即可签到，迟到超过10分钟需重新预约。</p>
-                        <p>2. 看房结束后请配合扫码签退，未签退将影响后续预约。</p>
+                        <p>2. 看房结束后请配合扫码进行服务评价，未评价将影响后续预约。</p>
                         <p style="margin-top:12px;"><strong>四、个人信息保护声明</strong></p>
                         <p>1. 您提供的个人信息仅用于预约看房相关服务，不会用于其他用途。</p>
                         <p>2. 提交预约即表示您已阅读并同意以上全部条款。</p>
