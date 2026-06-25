@@ -71,7 +71,7 @@
             <a href="#section-fields" class="nav-item" data-nav="fields"><i class="fas fa-pencil-alt text-xs mr-2 w-3.5 text-center"></i>字段配置</a>
             <a href="#section-capacity" class="nav-item" data-nav="capacity"><i class="fas fa-clock text-xs mr-2 w-3.5 text-center"></i>接待量规则</a>
             <a href="#section-verify" class="nav-item" data-nav="verify"><i class="fas fa-shield-alt text-xs mr-2 w-3.5 text-center"></i>资格验证</a>
-            <a href="#section-checkin" class="nav-item" data-nav="checkin"><i class="fas fa-qrcode text-xs mr-2 w-3.5 text-center"></i>签到签退</a>
+            <a href="#section-checkin" class="nav-item" data-nav="checkin"><i class="fas fa-qrcode text-xs mr-2 w-3.5 text-center"></i>签到评价</a>
             <a href="#section-notify" class="nav-item" data-nav="notify"><i class="fas fa-bell text-xs mr-2 w-3.5 text-center"></i>消息通知</a>
             <a href="#section-records" class="nav-item" data-nav="records"><i class="fas fa-table text-xs mr-2 w-3.5 text-center"></i>预约记录</a>
         </nav>
@@ -163,12 +163,12 @@
                         <rect x="525" y="554" width="120" height="36" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5" filter="url(#shadow)"/>
                         <text x="585" y="577" text-anchor="middle" fill="#1d4ed8" font-size="11" font-weight="600">置业顾问接待</text>
 
-                        <!-- Arrow: 置业顾问接待 → 签退 -->
+                        <!-- Arrow: 置业顾问接待 → 服务评价 -->
                         <line x1="585" y1="590" x2="585" y2="612" stroke="#1d4ed8" stroke-width="1.5" marker-end="url(#a-blue)"/>
                         <rect x="535" y="616" width="100" height="36" rx="10" fill="#faf5ff" stroke="#d8b4fe" stroke-width="1.5" filter="url(#shadow)"/>
-                        <text x="585" y="639" text-anchor="middle" fill="#9333ea" font-size="11" font-weight="600">签退</text>
+                        <text x="585" y="639" text-anchor="middle" fill="#9333ea" font-size="11" font-weight="600">服务评价</text>
 
-                        <!-- Arrow: 签退 → 流程结束 -->
+                        <!-- Arrow: 服务评价 → 流程结束 -->
                         <line x1="585" y1="652" x2="585" y2="674" stroke="#9333ea" stroke-width="1.5" marker-end="url(#a-gray)"/>
                         <rect x="535" y="678" width="100" height="36" rx="18" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5" filter="url(#shadow)"/>
                         <text x="585" y="701" text-anchor="middle" fill="#475569" font-size="11" font-weight="600">流程结束</text>
@@ -366,8 +366,8 @@
 
             <!-- ============ 06 签到签退 ============ -->
             <section id="section-checkin" class="doc-section">
-                <span class="section-badge" style="background:#ecfeff;color:#0e7490;"><span style="width:18px;height:18px;border-radius:50%;background:#0e7490;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;">6</span> 签到签退设置</span>
-                <p class="text-sm text-gray-500 leading-relaxed mb-5">配置到访签到与离场签退的方式。预约码通过接口传给<strong class="text-gray-700">来访登记系统</strong>（运行在 iPad），用户到场后扫码核验。</p>
+                <span class="section-badge" style="background:#ecfeff;color:#0e7490;"><span style="width:18px;height:18px;border-radius:50%;background:#0e7490;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:10px;">6</span> 签到评价设置</span>
+                <p class="text-sm text-gray-500 leading-relaxed mb-5">配置到访签到与服务评价的方式。预约码通过接口传给<strong class="text-gray-700">来访登记系统</strong>（运行在 iPad），用户到场后扫码核验。</p>
 
                 <h3 class="text-sm font-bold text-gray-700 mb-2">▎签到方式</h3>
                 <div class="mb-5">
@@ -436,8 +436,8 @@
                     </svg>
                 </div>
 
-                <!-- Flowchart: 签退场景 -->
-                <h3 class="text-sm font-bold text-gray-700 mb-2">▎签退场景</h3>
+                <!-- Flowchart: 服务评价场景 -->
+                <h3 class="text-sm font-bold text-gray-700 mb-2">▎服务评价场景</h3>
                 <div class="bg-white rounded-xl border border-gray-200 p-5 mb-5 overflow-x-auto">
                     <svg viewBox="0 0 620 160" width="620" height="160" xmlns="http://www.w3.org/2000/svg" class="flow-svg">
                         <defs>
@@ -445,16 +445,16 @@
                             <marker id="aG2" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5 Z" fill="#10b981"/></marker>
                             <marker id="aR2" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto"><path d="M0,0 L7,2.5 L0,5 Z" fill="#ef4444"/></marker>
                         </defs>
-                        <!-- Step 1: 用户离场扫码 -->
+                        <!-- Step 1: 用户扫码评价 -->
                         <rect x="8" y="55" width="105" height="50" rx="10" fill="#ecfeff" stroke="#67e8f9" stroke-width="2"/>
-                        <text x="60" y="77" text-anchor="middle" fill="#0e7490" font-size="11" font-weight="700">用户离场</text>
-                        <text x="60" y="93" text-anchor="middle" fill="#64748b" font-size="9">扫码签退</text>
+                        <text x="60" y="77" text-anchor="middle" fill="#0e7490" font-size="11" font-weight="700">用户扫码</text>
+                        <text x="60" y="93" text-anchor="middle" fill="#64748b" font-size="9">扫描评价二维码</text>
                         <!-- Arrow to C端 -->
                         <line x1="113" y1="80" x2="148" y2="80" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a2)"/>
-                        <!-- Step 2: C端签退页 -->
+                        <!-- Step 2: C端评价页 -->
                         <rect x="155" y="55" width="110" height="50" rx="10" fill="#f0f9ff" stroke="#7dd3fc" stroke-width="2"/>
-                        <text x="210" y="77" text-anchor="middle" fill="#0369a1" font-size="11" font-weight="700">C端签退页</text>
-                        <text x="210" y="93" text-anchor="middle" fill="#64748b" font-size="9">点击签到签退</text>
+                        <text x="210" y="77" text-anchor="middle" fill="#0369a1" font-size="11" font-weight="700">C端评价页</text>
+                        <text x="210" y="93" text-anchor="middle" fill="#64748b" font-size="9">填写评价并提交</text>
                         <!-- Arrow to 判断 -->
                         <line x1="265" y1="80" x2="310" y2="80" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a2)"/>
                         <!-- Step 3: 预约客户? 菱形 -->
@@ -465,18 +465,18 @@
                         <line x1="336" y1="80" x2="310" y2="80" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="5,2" marker-end="url(#aR2)"/>
                         <text x="323" y="73" text-anchor="middle" fill="#ef4444" font-size="9">否</text>
                         <rect x="155" y="110" width="145" height="36" rx="8" fill="#fee2e2" stroke="#fca5a5" stroke-width="2"/>
-                        <text x="227" y="128" text-anchor="middle" fill="#991b1b" font-size="10" font-weight="700">✕ 提示"无需签退"</text>
-                        <text x="227" y="142" text-anchor="middle" fill="#dc2626" font-size="9">非预约到访客户无需签退</text>
+                        <text x="227" y="128" text-anchor="middle" fill="#991b1b" font-size="10" font-weight="700">✕ 提示"无需评价"</text>
+                        <text x="227" y="142" text-anchor="middle" fill="#dc2626" font-size="9">非预约到访客户无需评价</text>
                         <line x1="371" y1="110" x2="371" y2="133" stroke="#ef4444" stroke-width="1" stroke-dasharray="4,2"/>
                         <line x1="371" y1="133" x2="300" y2="133" stroke="#ef4444" stroke-width="1" marker-end="url(#aR2)"/>
                         <!-- Yes branch -->
                         <line x1="406" y1="80" x2="445" y2="80" stroke="#10b981" stroke-width="1.5" marker-end="url(#aG2)"/>
                         <text x="426" y="73" text-anchor="middle" fill="#10b981" font-size="9">是</text>
                         <rect x="453" y="55" width="110" height="50" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="2"/>
-                        <text x="508" y="77" text-anchor="middle" fill="#15803d" font-size="11" font-weight="700">✅ 签退成功</text>
-                        <text x="508" y="93" text-anchor="middle" fill="#64748b" font-size="9">记录签退时间</text>
+                        <text x="508" y="77" text-anchor="middle" fill="#15803d" font-size="11" font-weight="700">✅ 评价提交成功</text>
+                        <text x="508" y="93" text-anchor="middle" fill="#64748b" font-size="9">记录评价时间</text>
                     </svg>
-                    <div class="mt-3 pt-2 border-t border-gray-100 text-[10px] text-gray-400">用户离场时扫描 iPad 来访登记系统的签退二维码 → 打开C端签退页 → 点击签退后系统校验身份</div>
+                    <div class="mt-3 pt-2 border-t border-gray-100 text-[10px] text-gray-400">用户离开前扫描 iPad 来访登记系统的服务评价二维码 → 打开C端评价页 → 填写评价后提交</div>
                 </div>
 
                 <h3 class="text-sm font-bold text-gray-700 mb-2">▎时间规则与二维码</h3>
@@ -501,8 +501,8 @@
                             <span>预约码 · 来访登记系统生成 · 用户到场扫码核验</span>
                         </div>
                         <div class="p-2.5 rounded-lg bg-blue-50 border border-blue-100 text-xs flex items-center gap-2">
-                            <span class="w-5 h-5 rounded bg-blue-500 text-white text-[9px] flex items-center justify-center font-bold shrink-0">退</span>
-                            <span>签退码 · 来访登记系统生成 · 离场扫码确认签退</span>
+                            <span class="w-5 h-5 rounded bg-blue-500 text-white text-[9px] flex items-center justify-center font-bold shrink-0">评</span>
+                            <span>服务评价码 · 来访登记系统生成 · 离场扫码填写评价</span>
                         </div>
                     </div>
                 </div>
@@ -607,7 +607,7 @@
                         <text x="183" y="37" text-anchor="middle" fill="#166534" font-size="11" font-weight="600">已签到</text>
                         <line x1="228" y1="32" x2="268" y2="32" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#as)"/>
                         <rect x="276" y="15" width="90" height="35" rx="17" fill="#d1fae5" stroke="#34d399" stroke-width="1.5"/>
-                        <text x="321" y="37" text-anchor="middle" fill="#065f46" font-size="11" font-weight="600">已签退</text>
+                        <text x="321" y="37" text-anchor="middle" fill="#065f46" font-size="11" font-weight="600">已评价</text>
                         <!-- 待到访 → 已取消 -->
                         <line x1="45" y1="50" x2="45" y2="58" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,2"/>
                         <line x1="45" y1="58" x2="408" y2="58" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,2"/>
