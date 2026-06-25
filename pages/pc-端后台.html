@@ -1,0 +1,1783 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预约看房 - PC端后台管理原型</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: '#f05a28',
+              'brand-light': '#fef3ee',
+              'brand-dark': '#d4491e',
+              sidebar: '#ffffff',
+              'sidebar-hover': '#f5f5f7',
+              'sidebar-active': '#fef3ee',
+              warm: '#c8956c',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        .sidebar-item { transition: all 0.15s ease; }
+        .sidebar-item:hover { background: #f5f5f7; }
+        .tab-item { position: relative; padding: 10px 20px; font-size: 14px; color: #64748b; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+        .tab-item:hover { color: #f05a28; }
+        .tab-item.active { color: #f05a28; font-weight: 600; }
+        .tab-item.active::after { content: ''; position: absolute; bottom: 0; left: 20px; right: 20px; height: 2px; background: #f05a28; border-radius: 1px; }
+        .config-section { display: none; }
+        .config-section.active { display: block; }
+        .form-input { border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        .form-input:focus { border-color: #f05a28; box-shadow: 0 0 0 3px rgba(240,90,40,0.08); }
+        .switch { position: relative; width: 44px; height: 24px; background: #cbd5e1; border-radius: 12px; cursor: pointer; transition: background 0.2s; }
+        .switch.on { background: #f05a28; }
+        .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+        .switch.on::after { transform: translateX(20px); }
+        .table-row:hover { background: #f8fafc; }
+        .page-section { display: none; }
+        .page-section.active { display: block; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 50; align-items: center; justify-content: center; }
+        .modal-overlay.show { display: flex; }
+        .stat-card { transition: transform 0.15s; }
+        .stat-card:hover { transform: translateY(-2px); }
+        .field-type-option { display:flex; flex-direction:column; align-items:center; gap:4px; padding:10px 6px; border:1.5px solid #e2e8f0; border-radius:10px; cursor:pointer; transition:all .15s; color:#64748b; position:relative; }
+        .field-type-option:hover { border-color:#f05a28; background:#fff8f5; }
+        .field-type-option.active { border-color:#f05a28; background:#fff8f5; color:#f05a28; }
+        .field-type-option input[type="radio"] { position:absolute; opacity:0; width:0; height:0; pointer-events:none; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased">
+
+    <!-- Layout: Sidebar + Main -->
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-60 bg-white border-r border-gray-100 text-gray-700 flex flex-col shrink-0 sticky top-0 h-screen shadow-sm">
+            <div class="px-5 py-5 border-b border-gray-100">
+                <h1 class="text-lg font-bold tracking-wide text-gray-900">AI云店管理</h1>
+                <p class="text-xs text-gray-400 mt-1">Enterprise Management</p>
+            </div>
+            <nav class="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+                <div class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-500 cursor-pointer">
+                    <i class="fas fa-home w-5 text-center"></i><span>工作台</span>
+                </div>
+                <div class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-500 cursor-pointer">
+                    <i class="fas fa-building w-5 text-center"></i><span>项目管理</span>
+                </div>
+                <div class="px-3 py-2 text-xs text-gray-400 uppercase tracking-wider">预约管理</div>
+                <div class="sidebar-item active flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-brand font-medium bg-brand-light cursor-pointer" onclick="switchPage('setting')">
+                    <i class="fas fa-cog w-5 text-center"></i><span>预约看房设置</span>
+                </div>
+                <div class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600 cursor-pointer" onclick="switchPage('records')">
+                    <i class="fas fa-clipboard-list w-5 text-center"></i><span>预约记录</span>
+                </div>
+                <div class="px-3 py-2 text-xs text-gray-400 uppercase tracking-wider mt-2">其他</div>
+                <div class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-500 cursor-pointer">
+                    <i class="fas fa-chart-bar w-5 text-center"></i><span>数据统计</span>
+                </div>
+                <div class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-500 cursor-pointer">
+                    <i class="fas fa-cog w-5 text-center"></i><span>系统设置</span>
+                </div>
+            </nav>
+            <div class="p-4 border-t border-gray-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-white text-xs font-bold">管</div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-800">管理员</p>
+                        <p class="text-[10px] text-gray-400">admin@company.com</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 min-w-0">
+            <!-- Header -->
+            <header class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-30">
+                <div class="flex items-center gap-4">
+                    <h2 class="text-base font-semibold text-gray-800">预约看房设置</h2>
+                </div>
+                <div class="flex items-center gap-3 text-sm text-gray-400">
+                    <a href="docs.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand/30 text-brand text-xs font-semibold hover:bg-brand hover:text-white transition-all no-underline" style="cursor:pointer">
+                        <i class="fas fa-book-open text-[11px]"></i><span>文档区</span>
+                    </a>
+                    <i class="far fa-bell cursor-pointer hover:text-gray-600"></i>
+                    <i class="far fa-question-circle cursor-pointer hover:text-gray-600"></i>
+                </div>
+            </header>
+
+            <!-- ============ Page: 预约设置 ============ -->
+            <div id="page-setting" class="page-section active p-6 max-w-6xl">
+                <!-- Project Selector Bar -->
+                <div class="bg-white rounded-2xl shadow-sm p-5 mb-6">
+                    <!-- Top Row: Tabs + Select + Actions -->
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-6">
+                            <!-- Project Name Dropdown -->
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-600 whitespace-nowrap">项目名称：</span>
+                                <select class="form-input py-2 px-3 pr-8 text-sm min-w-[180px] font-medium text-gray-800 appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3csvg%20xmlns%3d%22http%3a%2f%2fwww.w3.org%2f2000%2fsvg%22%20viewBox%3d%220%200%2024%2024%22%20fill%3d%22none%22%20stroke%3d%22%236b7280%22%20stroke-width%3d%222%22%20stroke-linecap%3d%22round%22%20stroke-linejoin%3d%22round%22%3e%3cpolyline%20points%3d%226%209%2012%2015%2018%209%22%3e%3c%2fpolyline%3e%3c%2fsvg%3e')] bg-no-repeat bg-[position:right_10px_center] bg-[size:16px] cursor-pointer">
+                                    <option>翡翠湖畔·云庐</option>
+                                    <option>奥利给</option>
+                                    <option>锦绣江南</option>
+                                    <option>云顶天境</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0">
+                            <button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-brand text-sm text-brand font-medium hover:bg-brand/5 transition shadow-sm" onclick="showCheckoutQrModal()">
+                                <i class="fas fa-qrcode"></i>服务评价二维码
+                            </button>
+                            <button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-dark transition shadow-sm" onclick="showQRModal()">
+                                <i class="fas fa-qrcode"></i>项目预约二维码
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Navigation -->
+                <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+                    <div class="flex border-b border-gray-100 px-4 overflow-x-auto">
+                        <div class="tab-item active" data-config-tab="notice" onclick="switchConfigTab(this, 'notice')">预约须知设置</div>
+                        <div class="tab-item" data-config-tab="fields" onclick="switchConfigTab(this, 'fields')">填写字段设置</div>
+                        <div class="tab-item" data-config-tab="capacity" onclick="switchConfigTab(this, 'capacity')">接待量设置</div>
+                        <div class="tab-item" data-config-tab="checkin" onclick="switchConfigTab(this, 'checkin')">签到签退设置</div>
+                        <div class="tab-item" data-config-tab="verify" onclick="switchConfigTab(this, 'verify')">资格验证设置</div>
+                    </div>
+
+                    <!-- Tab: 预约须知设置 -->
+                    <div id="config-notice" class="config-section active p-6">
+                        <div class="mb-4">
+                            <h3 class="font-semibold text-gray-800 mb-1">预约须知内容</h3>
+                            <p class="text-xs text-gray-400">C端用户预约时弹窗展示，需同意后方可继续预约</p>
+                        </div>
+                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                            <!-- Toolbar -->
+                            <div class="bg-gray-50 px-3 py-2 flex items-center gap-1 border-b border-gray-200">
+                                <button class="w-8 h-8 rounded hover:bg-gray-200 flex items-center justify-center text-gray-500 text-sm"><i class="fas fa-bold"></i></button>
+                                <button class="w-8 h-8 rounded hover:bg-gray-200 flex items-center justify-center text-gray-500 text-sm"><i class="fas fa-italic"></i></button>
+                                <button class="w-8 h-8 rounded hover:bg-gray-200 flex items-center justify-center text-gray-500 text-sm"><i class="fas fa-underline"></i></button>
+                                <div class="w-px h-5 bg-gray-300 mx-1"></div>
+                                <button class="w-8 h-8 rounded hover:bg-gray-200 flex items-center justify-center text-gray-500 text-sm"><i class="fas fa-list-ol"></i></button>
+                                <button class="w-8 h-8 rounded hover:bg-gray-200 flex items-center justify-center text-gray-500 text-sm"><i class="fas fa-list-ul"></i></button>
+                                <div class="w-px h-5 bg-gray-300 mx-1"></div>
+                                <button class="w-8 h-8 rounded hover:bg-gray-200 flex items-center justify-center text-gray-500 text-sm"><i class="fas fa-link"></i></button>
+                                <button class="w-8 h-8 rounded hover:bg-gray-200 flex items-center justify-center text-gray-500 text-sm"><i class="fas fa-image"></i></button>
+                            </div>
+                            <!-- Editor Area -->
+                            <div contenteditable="true" class="p-4 min-h-[200px] text-sm leading-relaxed focus:outline-none" style="line-height:1.8;">
+                                <p><strong>一、预约说明</strong></p>
+                                <p>1. 预约看房需提前预约，最多可提前7天进行预约。</p>
+                                <p>2. 每天开放预约时间为08:00-20:00，其他时间段不可预约。</p>
+                                <p>3. 30天内不可重复预约同一项目。</p>
+                                <br>
+                                <p><strong>二、取消规则</strong></p>
+                                <p>1. 预约成功后，最迟可在到访前一天晚上19:00前取消预约。</p>
+                                <p>2. 超过取消截止时间将无法取消，请合理安排时间。</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mt-3">
+                            <span class="text-xs text-gray-400">字数限制：3000字（当前 186/3000）</span>
+                        </div>
+                        <div class="flex items-center justify-end gap-3 mt-4">
+                            <button class="px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-dark transition">保存设置</button>
+                        </div>
+                        <!-- 用户同意记录 -->
+                        <div class="mt-6 pt-4 border-t border-gray-100">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-check-shield text-brand"></i>
+                                    <h4 class="text-sm font-semibold text-gray-700">用户同意记录</h4>
+                                    <span class="px-2 py-0.5 bg-gray-100 text-gray-400 text-[10px] rounded-full">共 128 条</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" placeholder="搜索姓名/人才编号" class="form-input text-xs w-40 py-1.5">
+                                    <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-500 hover:bg-gray-50 transition">
+                                        <i class="fas fa-download text-[10px]"></i>导出
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="border border-gray-100 rounded-xl overflow-hidden">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr class="bg-gray-50 text-gray-500 text-[11px]">
+                                            <th class="px-4 py-2.5 text-left font-medium">用户信息</th>
+                                            <th class="px-4 py-2.5 text-left font-medium">人才编号</th>
+                                            <th class="px-4 py-2.5 text-left font-medium">同意时间</th>
+                                            <th class="px-4 py-2.5 text-left font-medium">须知版本</th>
+                                            <th class="px-4 py-2.5 text-left font-medium">终端</th>
+                                            <th class="px-4 py-2.5 text-left font-medium">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-50">
+                                        <tr class="hover:bg-gray-50/50 transition">
+                                            <td class="px-4 py-3">
+                                                <p class="text-gray-800 font-medium">李明</p>
+                                                <p class="text-xs text-gray-400">138****5678</p>
+                                            </td>
+                                            <td class="px-4 py-3"><span class="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">RC20240012</span></td>
+                                            <td class="px-4 py-3 text-xs text-gray-500">2026-06-10 09:32:15</td>
+                                            <td class="px-4 py-3 text-xs text-gray-500">v2.1</td>
+                                            <td class="px-4 py-3 text-xs text-gray-400">微信小程序</td>
+                                            <td class="px-4 py-3">
+                                                <button class="text-xs text-brand font-medium hover:text-brand-dark hover:underline transition" onclick="showCertificateModal('李明','138****5678','RC20240012','2026-06-10 09:32:15','v2.1','微信小程序')">
+                                                    <i class="fas fa-file-contract mr-1"></i>查看凭证
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-gray-50/50 transition">
+                                            <td class="px-4 py-3">
+                                                <p class="text-gray-800 font-medium">张伟</p>
+                                                <p class="text-xs text-gray-400">139****1234</p>
+                                            </td>
+                                            <td class="px-4 py-3"><span class="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">RC20240023</span></td>
+                                            <td class="px-4 py-3 text-xs text-gray-500">2026-06-10 10:15:42</td>
+                                            <td class="px-4 py-3 text-xs text-gray-500">v2.1</td>
+                                            <td class="px-4 py-3 text-xs text-gray-400">微信小程序</td>
+                                            <td class="px-4 py-3">
+                                                <button class="text-xs text-brand font-medium hover:text-brand-dark hover:underline transition" onclick="showCertificateModal('张伟','139****1234','RC20240023','2026-06-10 10:15:42','v2.1','微信小程序')">
+                                                    <i class="fas fa-file-contract mr-1"></i>查看凭证
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-gray-50/50 transition">
+                                            <td class="px-4 py-3">
+                                                <p class="text-gray-800 font-medium">王芳</p>
+                                                <p class="text-xs text-gray-400">137****9876</p>
+                                            </td>
+                                            <td class="px-4 py-3"><span class="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">RC20240035</span></td>
+                                            <td class="px-4 py-3 text-xs text-gray-500">2026-06-09 14:28:03</td>
+                                            <td class="px-4 py-3 text-xs text-gray-500">v2.0</td>
+                                            <td class="px-4 py-3 text-xs text-gray-400">微信小程序</td>
+                                            <td class="px-4 py-3">
+                                                <button class="text-xs text-brand font-medium hover:text-brand-dark hover:underline transition" onclick="showCertificateModal('王芳','137****9876','RC20240035','2026-06-09 14:28:03','v2.0','微信小程序')">
+                                                    <i class="fas fa-file-contract mr-1"></i>查看凭证
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="px-4 py-2 bg-gray-50/30 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400">
+                                    <span>展示 1-3 条，共 128 条记录</span>
+                                    <div class="flex items-center gap-1">
+                                        <button class="w-6 h-6 rounded border border-gray-200 flex items-center justify-center text-gray-400"><i class="fas fa-chevron-left text-[10px]"></i></button>
+                                        <button class="w-6 h-6 rounded bg-brand text-white text-[10px]">1</button>
+                                        <button class="w-6 h-6 rounded border border-gray-200 flex items-center justify-center text-gray-400">2</button>
+                                        <button class="w-6 h-6 rounded border border-gray-200 flex items-center justify-center text-gray-400"><i class="fas fa-chevron-right text-[10px]"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-2 bg-amber-50 border border-amber-100 rounded-xl px-4 py-2.5 flex items-center gap-2">
+                                <i class="fas fa-info-circle text-amber-500 text-xs"></i>
+                                <p class="text-xs text-amber-700">用户同意记录可作为法律凭证，建议永久保存。记录内容：姓名、手机号、人才编号、同意时间戳、须知版本、操作终端</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab: 填写字段设置 -->
+                    <div id="config-fields" class="config-section p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="font-semibold text-gray-800 mb-1">表单字段配置</h3>
+                                <p class="text-xs text-gray-400">配置C端预约表单中展示的字段及其属性</p>
+                            </div>
+                            <button class="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-dashed border-brand text-brand text-sm hover:bg-brand-light transition" onclick="showAddFieldModal()">
+                                <i class="fas fa-plus text-xs"></i>新增自定义字段
+                            </button>
+                        </div>
+                        <!-- Preset Fields - 紧凑表格 -->
+                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="bg-gray-50 border-b border-gray-200">
+                                        <th class="text-left py-2.5 px-4 text-xs font-medium text-gray-500 w-8"><i class="fas fa-grip-vertical text-gray-300"></i></th>
+                                        <th class="text-left py-2.5 px-3 text-xs font-medium text-gray-500">字段名称</th>
+                                        <th class="text-left py-2.5 px-3 text-xs font-medium text-gray-500 w-20">类型</th>
+                                        <th class="text-left py-2.5 px-3 text-xs font-medium text-gray-500 w-16">属性</th>
+                                        <th class="text-center py-2.5 px-3 text-xs font-medium text-gray-500 w-16">启用</th>
+                                        <th class="text-right py-2.5 px-4 text-xs font-medium text-gray-500 w-20">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    <tr class="hover:bg-gray-50 transition group">
+                                        <td class="py-2.5 px-4"><i class="fas fa-grip-vertical text-gray-300 cursor-grab opacity-0 group-hover:opacity-100 transition"></i></td>
+                                        <td class="py-2.5 px-3">
+                                            <span class="text-sm font-medium text-gray-800">项目名称</span>
+                                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-50 text-orange-500 ml-1.5">预置</span>
+                                        </td>
+                                        <td class="py-2.5 px-3"><span class="text-xs text-gray-500">文本</span></td>
+                                        <td class="py-2.5 px-3"><span class="text-[11px] px-1.5 py-0.5 rounded bg-red-50 text-red-500">必填</span></td>
+                                        <td class="py-2.5 px-3 text-center"><div class="switch on inline-block scale-75 origin-center" onclick="this.classList.toggle('on')"></div></td>
+                                        <td class="py-2.5 px-4 text-right"><span class="text-xs text-gray-300">—</span></td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 transition group">
+                                        <td class="py-2.5 px-4"><i class="fas fa-grip-vertical text-gray-300 cursor-grab opacity-0 group-hover:opacity-100 transition"></i></td>
+                                        <td class="py-2.5 px-3">
+                                            <span class="text-sm font-medium text-gray-800">客户姓名</span>
+                                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-50 text-orange-500 ml-1.5">预置</span>
+                                        </td>
+                                        <td class="py-2.5 px-3"><span class="text-xs text-gray-500">文本</span></td>
+                                        <td class="py-2.5 px-3"><span class="text-[11px] px-1.5 py-0.5 rounded bg-red-50 text-red-500">必填</span></td>
+                                        <td class="py-2.5 px-3 text-center"><div class="switch on inline-block scale-75 origin-center" onclick="this.classList.toggle('on')"></div></td>
+                                        <td class="py-2.5 px-4 text-right"><span class="text-xs text-gray-300">—</span></td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 transition group">
+                                        <td class="py-2.5 px-4"><i class="fas fa-grip-vertical text-gray-300 cursor-grab opacity-0 group-hover:opacity-100 transition"></i></td>
+                                        <td class="py-2.5 px-3">
+                                            <span class="text-sm font-medium text-gray-800">客户电话</span>
+                                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-50 text-orange-500 ml-1.5">预置</span>
+                                        </td>
+                                        <td class="py-2.5 px-3"><span class="text-xs text-gray-500">手机号</span></td>
+                                        <td class="py-2.5 px-3"><span class="text-[11px] px-1.5 py-0.5 rounded bg-red-50 text-red-500">必填</span></td>
+                                        <td class="py-2.5 px-3 text-center"><div class="switch on inline-block scale-75 origin-center" onclick="this.classList.toggle('on')"></div></td>
+                                        <td class="py-2.5 px-4 text-right"><span class="text-xs text-gray-300">—</span></td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 transition group">
+                                        <td class="py-2.5 px-4"><i class="fas fa-grip-vertical text-gray-300 cursor-grab opacity-0 group-hover:opacity-100 transition"></i></td>
+                                        <td class="py-2.5 px-3">
+                                            <span class="text-sm font-medium text-gray-800">人才编号</span>
+                                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-50 text-orange-500 ml-1.5">预置</span>
+                                        </td>
+                                        <td class="py-2.5 px-3"><span class="text-xs text-gray-500">文本</span></td>
+                                        <td class="py-2.5 px-3"><span class="text-[11px] px-1.5 py-0.5 rounded bg-red-50 text-red-500">必填</span></td>
+                                        <td class="py-2.5 px-3 text-center"><div class="switch on inline-block scale-75 origin-center" onclick="this.classList.toggle('on')"></div></td>
+                                        <td class="py-2.5 px-4 text-right"><span class="text-xs text-gray-300">—</span></td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 transition group">
+                                        <td class="py-2.5 px-4"><i class="fas fa-grip-vertical text-gray-300 cursor-grab opacity-0 group-hover:opacity-100 transition"></i></td>
+                                        <td class="py-2.5 px-3">
+                                            <span class="text-sm font-medium text-gray-800">看房日期</span>
+                                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-50 text-orange-500 ml-1.5">预置</span>
+                                        </td>
+                                        <td class="py-2.5 px-3"><span class="text-xs text-gray-500">日期</span></td>
+                                        <td class="py-2.5 px-3"><span class="text-[11px] px-1.5 py-0.5 rounded bg-red-50 text-red-500">必填</span></td>
+                                        <td class="py-2.5 px-3 text-center"><div class="switch on inline-block scale-75 origin-center" onclick="this.classList.toggle('on')"></div></td>
+                                        <td class="py-2.5 px-4 text-right"><span class="text-xs text-gray-300">—</span></td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50 transition group">
+                                        <td class="py-2.5 px-4"><i class="fas fa-grip-vertical text-gray-300 cursor-grab opacity-0 group-hover:opacity-100 transition"></i></td>
+                                        <td class="py-2.5 px-3">
+                                            <span class="text-sm font-medium text-gray-800">看房时段</span>
+                                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-50 text-orange-500 ml-1.5">预置</span>
+                                        </td>
+                                        <td class="py-2.5 px-3"><span class="text-xs text-gray-500">时段</span></td>
+                                        <td class="py-2.5 px-3"><span class="text-[11px] px-1.5 py-0.5 rounded bg-red-50 text-red-500">必填</span></td>
+                                        <td class="py-2.5 px-3 text-center"><div class="switch on inline-block scale-75 origin-center" onclick="this.classList.toggle('on')"></div></td>
+                                        <td class="py-2.5 px-4 text-right"><span class="text-xs text-gray-300">—</span></td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50/80 transition group bg-blue-50/30">
+                                        <td class="py-2.5 px-4"><i class="fas fa-grip-vertical text-gray-300 cursor-grab opacity-0 group-hover:opacity-100 transition"></i></td>
+                                        <td class="py-2.5 px-3">
+                                            <span class="text-sm font-medium text-gray-800">车牌号</span>
+                                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-500 ml-1.5">自定义</span>
+                                        </td>
+                                        <td class="py-2.5 px-3"><span class="text-xs text-gray-500">文本</span></td>
+                                        <td class="py-2.5 px-3"><span class="text-[11px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">选填</span></td>
+                                        <td class="py-2.5 px-3 text-center"><div class="switch on inline-block scale-75 origin-center" onclick="this.classList.toggle('on')"></div></td>
+                                        <td class="py-2.5 px-4 text-right">
+                                            <i class="fas fa-pen text-gray-350 hover:text-brand cursor-pointer mr-2.5 transition" title="编辑"></i>
+                                            <i class="fas fa-trash text-gray-350 hover:text-red-400 cursor-pointer transition" title="删除"></i>
+                                        </td>
+                                    </tr>
+                                    <tr class="hover:bg-gray-50/80 transition group bg-blue-50/30">
+                                        <td class="py-2.5 px-4"><i class="fas fa-grip-vertical text-gray-300 cursor-grab opacity-0 group-hover:opacity-100 transition"></i></td>
+                                        <td class="py-2.5 px-3">
+                                            <span class="text-sm font-medium text-gray-800">陪同人数</span>
+                                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-500 ml-1.5">自定义</span>
+                                        </td>
+                                        <td class="py-2.5 px-3"><span class="text-xs text-gray-500">数字</span></td>
+                                        <td class="py-2.5 px-3"><span class="text-[11px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">选填</span></td>
+                                        <td class="py-2.5 px-3 text-center"><div class="switch on inline-block scale-75 origin-center" onclick="this.classList.toggle('on')"></div></td>
+                                        <td class="py-2.5 px-4 text-right">
+                                            <i class="fas fa-pen text-gray-350 hover:text-brand cursor-pointer mr-2.5 transition" title="编辑"></i>
+                                            <i class="fas fa-trash text-gray-350 hover:text-red-400 cursor-pointer transition" title="删除"></i>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+                            <button class="px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-dark transition">保存设置</button>
+                        </div>
+                    </div>
+
+                    <!-- Tab: 接待量设置 -->
+                    <div id="config-capacity" class="config-section p-6">
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-800 mb-1">接待量与规则配置</h3>
+                            <p class="text-xs text-gray-400">配置预约时段、接待量及各项预约限制规则</p>
+                        </div>
+                        <!-- Time Slots -->
+                        <div class="mb-8">
+                            <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                <i class="fas fa-clock text-brand"></i>可预约时段与接待量
+                            </h4>
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
+                                    <span class="text-sm text-gray-700 w-36">上午时段1</span>
+                                    <input type="text" value="09:00" class="form-input w-20 text-center text-sm">
+                                    <span class="text-gray-400">—</span>
+                                    <input type="text" value="10:00" class="form-input w-20 text-center text-sm">
+                                    <span class="text-sm text-gray-500 ml-4">预约量</span>
+                                    <input type="number" value="10" class="form-input w-16 text-center text-sm">
+                                    <span class="text-sm text-gray-400">人</span>
+                                    <i class="fas fa-times-circle text-gray-300 cursor-pointer hover:text-red-400 ml-auto"></i>
+                                </div>
+                                <div class="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
+                                    <span class="text-sm text-gray-700 w-36">上午时段2</span>
+                                    <input type="text" value="10:00" class="form-input w-20 text-center text-sm">
+                                    <span class="text-gray-400">—</span>
+                                    <input type="text" value="11:00" class="form-input w-20 text-center text-sm">
+                                    <span class="text-sm text-gray-500 ml-4">预约量</span>
+                                    <input type="number" value="10" class="form-input w-16 text-center text-sm">
+                                    <span class="text-sm text-gray-400">人</span>
+                                    <i class="fas fa-times-circle text-gray-300 cursor-pointer hover:text-red-400 ml-auto"></i>
+                                </div>
+                                <div class="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
+                                    <span class="text-sm text-gray-700 w-36">上午时段3</span>
+                                    <input type="text" value="11:00" class="form-input w-20 text-center text-sm">
+                                    <span class="text-gray-400">—</span>
+                                    <input type="text" value="12:00" class="form-input w-20 text-center text-sm">
+                                    <span class="text-sm text-gray-500 ml-4">预约量</span>
+                                    <input type="number" value="8" class="form-input w-16 text-center text-sm">
+                                    <span class="text-sm text-gray-400">人</span>
+                                    <i class="fas fa-times-circle text-gray-300 cursor-pointer hover:text-red-400 ml-auto"></i>
+                                </div>
+                                <div class="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
+                                    <span class="text-sm text-gray-700 w-36">下午时段1</span>
+                                    <input type="text" value="14:00" class="form-input w-20 text-center text-sm">
+                                    <span class="text-gray-400">—</span>
+                                    <input type="text" value="15:00" class="form-input w-20 text-center text-sm">
+                                    <span class="text-sm text-gray-500 ml-4">预约量</span>
+                                    <input type="number" value="10" class="form-input w-16 text-center text-sm">
+                                    <span class="text-sm text-gray-400">人</span>
+                                    <i class="fas fa-times-circle text-gray-300 cursor-pointer hover:text-red-400 ml-auto"></i>
+                                </div>
+                                <div class="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
+                                    <span class="text-sm text-gray-700 w-36">下午时段2</span>
+                                    <input type="text" value="15:00" class="form-input w-20 text-center text-sm">
+                                    <span class="text-gray-400">—</span>
+                                    <input type="text" value="16:00" class="form-input w-20 text-center text-sm">
+                                    <span class="text-sm text-gray-500 ml-4">预约量</span>
+                                    <input type="number" value="10" class="form-input w-16 text-center text-sm">
+                                    <span class="text-sm text-gray-400">人</span>
+                                    <i class="fas fa-times-circle text-gray-300 cursor-pointer hover:text-red-400 ml-auto"></i>
+                                </div>
+                                <div class="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
+                                    <span class="text-sm text-gray-700 w-36">下午时段3</span>
+                                    <input type="text" value="16:00" class="form-input w-20 text-center text-sm">
+                                    <span class="text-gray-400">—</span>
+                                    <input type="text" value="17:00" class="form-input w-20 text-center text-sm">
+                                    <span class="text-sm text-gray-500 ml-4">预约量</span>
+                                    <input type="number" value="8" class="form-input w-16 text-center text-sm">
+                                    <span class="text-sm text-gray-400">人</span>
+                                    <i class="fas fa-times-circle text-gray-300 cursor-pointer hover:text-red-400 ml-auto"></i>
+                                </div>
+                            </div>
+                            <button class="mt-3 flex items-center gap-2 px-4 py-2 rounded-lg border border-dashed border-brand text-brand text-sm hover:bg-brand-light transition">
+                                <i class="fas fa-plus text-xs"></i>添加时段
+                            </button>
+                        </div>
+
+                        <!-- Rules -->
+                        <div class="space-y-4">
+                            <h4 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                <i class="fas fa-sliders-h text-warm"></i>预约规则限制
+                            </h4>
+                            <div class="bg-gray-50 rounded-xl p-5 space-y-5">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-700 font-medium">最多提前预约天数</p>
+                                        <p class="text-xs text-gray-400 mt-0.5">限制用户最多可提前多少天进行预约</p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="number" value="7" class="form-input w-20 text-center text-sm">
+                                        <span class="text-sm text-gray-400">天</span>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200"></div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-700 font-medium">每天开放预约时间</p>
+                                        <p class="text-xs text-gray-400 mt-0.5">仅在此时间范围内允许预约，其他时间不可预约</p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="text" value="08:00" class="form-input w-20 text-center text-sm">
+                                        <span class="text-gray-400">—</span>
+                                        <input type="text" value="20:00" class="form-input w-20 text-center text-sm">
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200"></div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-700 font-medium">不可重复预约天数</p>
+                                        <p class="text-xs text-gray-400 mt-0.5">同一用户在此天数内不可重复预约</p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="number" value="30" class="form-input w-20 text-center text-sm">
+                                        <span class="text-sm text-gray-400">天</span>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200"></div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-700 font-medium">未签到/未取消锁定期</p>
+                                        <p class="text-xs text-gray-400 mt-0.5">未取消也未签到核销后的限制预约天数</p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="number" value="7" class="form-input w-20 text-center text-sm">
+                                        <span class="text-sm text-gray-400">天</span>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200"></div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-700 font-medium">取消预约截止时间</p>
+                                        <p class="text-xs text-gray-400 mt-0.5">到访前一天该时间前可取消（默认19:00）</p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="text" value="19:00" class="form-input w-20 text-center text-sm">
+                                        <span class="text-sm text-gray-400">前</span>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200"></div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-700 font-medium">至少提前预约天数</p>
+                                        <p class="text-xs text-gray-400 mt-0.5">用户需至少提前N天进行预约，当天不可预约</p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="number" value="1" class="form-input w-20 text-center text-sm">
+                                        <span class="text-sm text-gray-400">天</span>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200"></div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-700 font-medium">陪同人数上限</p>
+                                        <p class="text-xs text-gray-400 mt-0.5">每位预约客户最多可带多少名陪同人员到访</p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <input type="number" value="3" class="form-input w-20 text-center text-sm">
+                                        <span class="text-sm text-gray-400">人</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+                            <button class="px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-dark transition">保存设置</button>
+                        </div>
+                    </div>
+
+                    <!-- Tab: 签到签退设置 -->
+                    <div id="config-checkin" class="config-section p-6">
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-800 mb-1">签到签退设置</h3>
+                            <p class="text-xs text-gray-400">配置预约后到现场时的签到及违约处理规则</p>
+                        </div>
+                        <div class="space-y-5">
+                            <!-- 签到规则 -->
+                            <div class="bg-gray-50 rounded-xl p-5">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <div class="w-6 h-6 rounded-full bg-brand text-white text-[10px] flex items-center justify-center">1</div>
+                                    <h4 class="text-sm font-semibold text-gray-700">签到规则</h4>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="bg-white rounded-xl p-4 border border-gray-100">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <i class="fas fa-clock text-green-500 text-sm"></i>
+                                            <span class="text-sm font-medium text-gray-700">提前签到</span>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mb-3">到访客户可提前签到，不足此时段提示相关信息</p>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs text-gray-500">提前</span>
+                                            <input type="number" value="15" class="form-input w-16 text-center text-sm" min="0">
+                                            <span class="text-xs text-gray-500">分钟可签到</span>
+                                        </div>
+                                        <div class="mt-2 bg-amber-50 rounded-lg px-3 py-2 text-xs text-amber-700">
+                                            <i class="fas fa-info-circle mr-1"></i>超过该时间提示"非预约客户或未到预约时间"
+                                        </div>
+                                    </div>
+                                    <div class="bg-white rounded-xl p-4 border border-gray-100">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <i class="fas fa-clock text-red-400 text-sm"></i>
+                                            <span class="text-sm font-medium text-gray-700">迟到限制</span>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mb-3">迟到客户在时段结束前有限签到窗口</p>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs text-gray-500">距结束前</span>
+                                            <input type="number" value="10" class="form-input w-16 text-center text-sm" min="0">
+                                            <span class="text-xs text-gray-500">分钟停止签到</span>
+                                        </div>
+                                        <div class="mt-2 bg-amber-50 rounded-lg px-3 py-2 text-xs text-amber-700">
+                                            <i class="fas fa-info-circle mr-1"></i>超时提示"预约时段即将结束，无法签到"
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 bg-white rounded-xl p-4 border border-gray-100">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <i class="fas fa-calendar-check text-brand text-sm"></i>
+                                        <span class="text-sm font-medium text-gray-700">签到示例</span>
+                                    </div>
+                                    <p class="text-xs text-gray-500">如预约时段为 <strong>10:00 - 11:00</strong>：签到窗口为 <strong>9:45</strong> 到 <strong>10:50</strong>；10:50之后无法签到，视为迟到违约</p>
+                                </div>
+                            </div>
+
+
+                            <!-- 违约处理 -->
+                            <div class="bg-amber-50 rounded-xl p-5 border border-amber-100">
+                                <div class="flex items-center gap-2 mb-4">
+                                    <div class="w-6 h-6 rounded-full bg-amber-500 text-white text-[10px] flex items-center justify-center">2</div>
+                                    <h4 class="text-sm font-semibold text-amber-800">违约处理规则</h4>
+                                </div>
+                                <div class="space-y-3 bg-white rounded-xl p-4">
+                                    <div class="flex items-start gap-3">
+                                        <span class="w-5 h-5 rounded-full bg-red-50 text-red-500 text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+                                            <i class="fas fa-times"></i>
+                                        </span>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-700">未签到（No-Show）</p>
+                                            <p class="text-xs text-gray-500 mt-0.5">已预约但到访时段结束后仍未签到，系统自动标记为违约</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span class="w-5 h-5 rounded-full bg-red-50 text-red-500 text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+                                            <i class="fas fa-times"></i>
+                                        </span>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-700">迟到未签到</p>
+                                            <p class="text-xs text-gray-500 mt-0.5">在签到窗口截止时间之后才到场的，视为迟到违约，不记录签到</p>
+                                        </div>
+                                    </div>
+                                    <div class="border-t border-gray-100 pt-3 flex items-center justify-between">
+                                        <span class="text-sm text-gray-700 font-medium">违约后锁定天数</span>
+                                        <div class="flex items-center gap-2">
+                                            <input type="number" value="7" class="form-input w-20 text-center text-sm">
+                                            <span class="text-sm text-gray-400">天内不可再次预约</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+                            <button class="px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-dark transition">保存设置</button>
+                        </div>
+                    </div>
+
+                    <!-- Tab: 资格验证设置 -->
+                    <div id="config-verify" class="config-section p-6">
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-800 mb-1">资格验证设置</h3>
+                            <p class="text-xs text-gray-400">通过人才编号与姓名双重匹配进行C端预约时的身份验证</p>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+                                <div>
+                                    <p class="text-sm text-gray-700 font-medium">启用人员名单验证</p>
+                                    <p class="text-xs text-gray-400 mt-0.5">开启后仅名单内人员可预约，关闭则所有人可预约</p>
+                                </div>
+                                <div class="switch on" onclick="this.classList.toggle('on')"></div>
+                            </div>
+                            <div class="bg-brand-light border border-brand/10 rounded-xl px-4 py-3 flex items-center gap-3">
+                                <i class="fas fa-id-card text-brand text-lg"></i>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-800">匹配规则：<span class="text-brand">姓名 + 人才编号匹配</span></p>
+                                    <p class="text-xs text-gray-500 mt-0.5">系统以人才编号和姓名作为双重验证标识，确保身份精确核验</p>
+                                </div>
+                            </div>
+                            <!-- 人员名单嵌入展示 -->
+                            <div class="border border-gray-100 rounded-xl overflow-hidden">
+                                <div class="bg-gray-50 px-4 py-3 flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700">
+                                        <i class="fas fa-list-ul text-brand mr-2"></i>可预约人员名单
+                                        <span class="text-xs text-gray-400 ml-2">共 256 人</span>
+                                    </span>
+                                    <div class="flex items-center gap-2">
+                                        <button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand text-white text-xs font-medium hover:bg-brand-dark transition shadow-sm" onclick="showAddPersonModal()">
+                                            <i class="fas fa-plus text-[10px]"></i>新增人员
+                                        </button>
+                                        <button class="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-500 hover:bg-white transition">
+                                            <i class="fas fa-download text-[10px]"></i>导出
+                                        </button>
+                                        <button class="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-500 hover:bg-white transition">
+                                            <i class="fas fa-download text-[10px]"></i>导出模板
+                                        </button>
+                                        <button class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-brand text-white text-xs font-medium hover:bg-brand-dark transition">
+                                            <i class="fas fa-upload text-[10px]"></i>导入
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm">
+                                        <thead>
+                                            <tr class="bg-gray-50 text-gray-500 text-[11px]">
+                                                <th class="px-4 py-2.5 text-left font-medium">人才编号</th>
+                                                <th class="px-4 py-2.5 text-left font-medium">姓名</th>
+                                                <th class="px-4 py-2.5 text-left font-medium">手机号</th>
+                                                <th class="px-4 py-2.5 text-left font-medium">身份证号</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-50">
+                                            <tr class="hover:bg-gray-50/50 transition">
+                                                <td class="px-4 py-2.5 font-medium text-gray-800">RC20240012</td>
+                                                <td class="px-4 py-2.5">李明</td>
+                                                <td class="px-4 py-2.5 text-gray-500">138****5678</td>
+                                                <td class="px-4 py-2.5 text-gray-500">1101011990****1234</td>
+                                            </tr>
+                                            <tr class="hover:bg-gray-50/50 transition">
+                                                <td class="px-4 py-2.5 font-medium text-gray-800">RC20240023</td>
+                                                <td class="px-4 py-2.5">张伟</td>
+                                                <td class="px-4 py-2.5 text-gray-500">139****1234</td>
+                                                <td class="px-4 py-2.5 text-gray-500">3101011985****5678</td>
+                                            </tr>
+                                            <tr class="hover:bg-gray-50/50 transition">
+                                                <td class="px-4 py-2.5 font-medium text-gray-800">RC20240035</td>
+                                                <td class="px-4 py-2.5">王芳</td>
+                                                <td class="px-4 py-2.5 text-gray-500">137****9876</td>
+                                                <td class="px-4 py-2.5 text-gray-500">4401061992****9012</td>
+                                            </tr>
+                                            <tr class="hover:bg-gray-50/50 transition">
+                                                <td class="px-4 py-2.5 font-medium text-gray-800">RC20240048</td>
+                                                <td class="px-4 py-2.5">陈静</td>
+                                                <td class="px-4 py-2.5 text-gray-500">136****5555</td>
+                                                <td class="px-4 py-2.5 text-gray-500">5001011988****3456</td>
+                                            </tr>
+                                            <tr class="hover:bg-gray-50/50 transition">
+                                                <td class="px-4 py-2.5 font-medium text-gray-800">RC20240056</td>
+                                                <td class="px-4 py-2.5">赵强</td>
+                                                <td class="px-4 py-2.5 text-gray-500">155****3344</td>
+                                                <td class="px-4 py-2.5 text-gray-500">6101041995****7890</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="px-4 py-2 bg-gray-50/30 text-center text-xs text-gray-400">
+                                    <i class="fas fa-info-circle mr-1"></i>仅展示最近 5 条
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+                            <button class="px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-dark transition">保存设置</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ Page: 可预约人员 ============ -->
+            <div id="page-persons" class="page-section p-6">
+                <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+                    <!-- Header -->
+                    <div class="p-6 border-b border-gray-100">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h2 class="text-lg font-bold text-gray-900">可预约人员名单</h2>
+                                <p class="text-xs text-gray-400 mt-1">导入和管理可预约看房的人员名单，C端预约时将校验是否在名单中</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-dark transition shadow-sm" onclick="showAddPersonModal()">
+                                    <i class="fas fa-plus text-xs"></i>新增人员
+                                </button>
+                                <button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition">
+                                    <i class="fas fa-download text-xs"></i>导出
+                                </button>
+                                <button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition">
+                                    <i class="fas fa-download text-xs"></i>下载模板
+                                </button>
+                                <button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-dark transition" onclick="showImportModal()">
+                                    <i class="fas fa-upload text-xs"></i>导入名单
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Search & Filter -->
+                        <div class="flex items-center gap-3">
+                            <div class="relative flex-1 max-w-sm">
+                                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-sm"></i>
+                                <input type="text" placeholder="搜索姓名、手机号、人才编号" class="form-input w-full pl-9 text-sm">
+                            </div>
+                            <select class="form-input text-sm text-gray-500 min-w-[120px]">
+                                <option>全部来源</option>
+                                <option>手动添加</option>
+                                <option>Excel导入</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                                    <th class="px-4 py-3 text-left font-medium w-12"><input type="checkbox" class="accent-brand"></th>
+                                    <th class="px-4 py-3 text-left font-medium">序号</th>
+                                    <th class="px-4 py-3 text-left font-medium">人才编号</th>
+                                    <th class="px-4 py-3 text-left font-medium">姓名</th>
+                                    <th class="px-4 py-3 text-left font-medium">手机号</th>
+                                    <th class="px-4 py-3 text-left font-medium">来源</th>
+                                    <th class="px-4 py-3 text-left font-medium">导入时间</th>
+                                    <th class="px-4 py-3 text-left font-medium">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                <tr class="table-row transition">
+                                    <td class="px-4 py-3"><input type="checkbox" class="accent-brand"></td>
+                                    <td class="px-4 py-3 text-gray-400">1</td>
+                                    <td class="px-4 py-3 font-medium text-gray-800">RC20240012</td>
+                                    <td class="px-4 py-3">李明</td>
+                                    <td class="px-4 py-3 text-gray-500">138****5678</td>
+                                    <td class="px-4 py-3"><span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-light text-brand">Excel导入</span></td>
+                                    <td class="px-4 py-3 text-gray-400">2026-06-01 14:30</td>
+                                    <td class="px-4 py-3">
+                                        <button class="text-brand text-xs hover:underline mr-3">编辑</button>
+                                        <button class="text-red-400 text-xs hover:underline">删除</button>
+                                    </td>
+                                </tr>
+                                <tr class="table-row transition">
+                                    <td class="px-4 py-3"><input type="checkbox" class="accent-brand"></td>
+                                    <td class="px-4 py-3 text-gray-400">2</td>
+                                    <td class="px-4 py-3 font-medium text-gray-800">RC20240023</td>
+                                    <td class="px-4 py-3">张伟</td>
+                                    <td class="px-4 py-3 text-gray-500">139****1234</td>
+                                    <td class="px-4 py-3"><span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-light text-brand">Excel导入</span></td>
+                                    <td class="px-4 py-3 text-gray-400">2026-06-01 14:30</td>
+                                    <td class="px-4 py-3">
+                                        <button class="text-brand text-xs hover:underline mr-3">编辑</button>
+                                        <button class="text-red-400 text-xs hover:underline">删除</button>
+                                    </td>
+                                </tr>
+                                <tr class="table-row transition">
+                                    <td class="px-4 py-3"><input type="checkbox" class="accent-brand"></td>
+                                    <td class="px-4 py-3 text-gray-400">3</td>
+                                    <td class="px-4 py-3 font-medium text-gray-800">RC20240035</td>
+                                    <td class="px-4 py-3">王芳</td>
+                                    <td class="px-4 py-3 text-gray-500">137****9876</td>
+                                    <td class="px-4 py-3"><span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-500">手动添加</span></td>
+                                    <td class="px-4 py-3 text-gray-400">2026-06-03 10:15</td>
+                                    <td class="px-4 py-3">
+                                        <button class="text-brand text-xs hover:underline mr-3">编辑</button>
+                                        <button class="text-red-400 text-xs hover:underline">删除</button>
+                                    </td>
+                                </tr>
+                                <tr class="table-row transition">
+                                    <td class="px-4 py-3"><input type="checkbox" class="accent-brand"></td>
+                                    <td class="px-4 py-3 text-gray-400">4</td>
+                                    <td class="px-4 py-3 font-medium text-gray-800">RC20240048</td>
+                                    <td class="px-4 py-3">陈静</td>
+                                    <td class="px-4 py-3 text-gray-500">136****5555</td>
+                                    <td class="px-4 py-3"><span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-light text-brand">Excel导入</span></td>
+                                    <td class="px-4 py-3 text-gray-400">2026-06-01 14:30</td>
+                                    <td class="px-4 py-3">
+                                        <button class="text-brand text-xs hover:underline mr-3">编辑</button>
+                                        <button class="text-red-400 text-xs hover:underline">删除</button>
+                                    </td>
+                                </tr>
+                                <tr class="table-row transition">
+                                    <td class="px-4 py-3"><input type="checkbox" class="accent-brand"></td>
+                                    <td class="px-4 py-3 text-gray-400">5</td>
+                                    <td class="px-4 py-3 font-medium text-gray-800">RC20240056</td>
+                                    <td class="px-4 py-3">赵磊</td>
+                                    <td class="px-4 py-3 text-gray-500">135****8888</td>
+                                    <td class="px-4 py-3"><span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-light text-brand">Excel导入</span></td>
+                                    <td class="px-4 py-3 text-gray-400">2026-06-05 09:00</td>
+                                    <td class="px-4 py-3">
+                                        <button class="text-brand text-xs hover:underline mr-3">编辑</button>
+                                        <button class="text-red-400 text-xs hover:underline">删除</button>
+                                    </td>
+                                </tr>
+                                <tr class="table-row transition">
+                                    <td class="px-4 py-3"><input type="checkbox" class="accent-brand"></td>
+                                    <td class="px-4 py-3 text-gray-400">6</td>
+                                    <td class="px-4 py-3 font-medium text-gray-800">RC20240067</td>
+                                    <td class="px-4 py-3">刘洋</td>
+                                    <td class="px-4 py-3 text-gray-500">133****6666</td>
+                                    <td class="px-4 py-3"><span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-500">手动添加</span></td>
+                                    <td class="px-4 py-3 text-gray-400">2026-06-08 16:45</td>
+                                    <td class="px-4 py-3">
+                                        <button class="text-brand text-xs hover:underline mr-3">编辑</button>
+                                        <button class="text-red-400 text-xs hover:underline">删除</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination -->
+                    <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
+                        <span class="text-xs text-gray-400">共 256 条记录</span>
+                        <div class="flex items-center gap-1">
+                            <button class="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 text-xs flex items-center justify-center hover:bg-gray-100"><i class="fas fa-chevron-left"></i></button>
+                            <button class="w-8 h-8 rounded-lg bg-brand text-white text-xs flex items-center justify-center">1</button>
+                            <button class="w-8 h-8 rounded-lg bg-gray-50 text-gray-500 text-xs flex items-center justify-center hover:bg-gray-100">2</button>
+                            <button class="w-8 h-8 rounded-lg bg-gray-50 text-gray-500 text-xs flex items-center justify-center hover:bg-gray-100">3</button>
+                            <span class="text-xs text-gray-400 px-1">...</span>
+                            <button class="w-8 h-8 rounded-lg bg-gray-50 text-gray-500 text-xs flex items-center justify-center hover:bg-gray-100">26</button>
+                            <button class="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 text-xs flex items-center justify-center hover:bg-gray-100"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ Page: 预约记录 ============ -->
+            <div id="page-records" class="page-section p-6">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-4 gap-4 mb-6">
+                    <div class="stat-card bg-white rounded-2xl shadow-sm p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs text-gray-400 font-medium">总预约数</span>
+                            <div class="w-8 h-8 rounded-lg bg-brand-light flex items-center justify-center">
+                                <i class="fas fa-clipboard-list text-brand text-sm"></i>
+                            </div>
+                        </div>
+                        <p class="text-2xl font-bold text-gray-900">1,286</p>
+                        <p class="text-[10px] text-green-500 mt-1"><i class="fas fa-arrow-up mr-0.5"></i>较上月 +12.3%</p>
+                    </div>
+                    <div class="stat-card bg-white rounded-2xl shadow-sm p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs text-gray-400 font-medium">今日预约</span>
+                            <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                                <i class="fas fa-calendar-day text-amber-500 text-sm"></i>
+                            </div>
+                        </div>
+                        <p class="text-2xl font-bold text-gray-900">18</p>
+                        <p class="text-[10px] text-gray-400 mt-1">今日新增预约</p>
+                    </div>
+                    <div class="stat-card bg-white rounded-2xl shadow-sm p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs text-gray-400 font-medium">待到访</span>
+                            <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                                <i class="fas fa-hourglass-half text-blue-500 text-sm"></i>
+                            </div>
+                        </div>
+                        <p class="text-2xl font-bold text-gray-900">42</p>
+                        <p class="text-[10px] text-gray-400 mt-1">待签到到访</p>
+                    </div>
+                    <div class="stat-card bg-white rounded-2xl shadow-sm p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs text-gray-400 font-medium">已取消</span>
+                            <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+                                <i class="fas fa-times-circle text-red-400 text-sm"></i>
+                            </div>
+                        </div>
+                        <p class="text-2xl font-bold text-gray-900">156</p>
+                        <p class="text-[10px] text-gray-400 mt-1">取消率 12.1%</p>
+                    </div>
+                </div>
+
+                <!-- Records Table -->
+                <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+                    <!-- Filters -->
+                    <div class="p-5 border-b border-gray-100">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-bold text-gray-900">预约记录</h2>
+                            <button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition">
+                                <i class="fas fa-download text-xs"></i>导出数据
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <div class="relative flex-1 min-w-[200px] max-w-xs">
+                                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-sm"></i>
+                                <input type="text" placeholder="搜索姓名/手机号/人才编号" class="form-input w-full pl-9 text-sm">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-gray-400">日期</span>
+                                <input type="date" value="2026-06-01" class="form-input text-sm">
+                                <span class="text-gray-300">至</span>
+                                <input type="date" value="2026-06-10" class="form-input text-sm">
+                            </div>
+                            <select class="form-input text-sm text-gray-500 min-w-[100px]">
+                                <option>全部状态</option>
+                                <option>待到访</option>
+                                <option>已签到</option>
+                                <option>已评价</option>
+                                <option>已取消</option>
+                                <option>已过期</option>
+                            </select>
+                            <button class="px-3 py-2 rounded-lg bg-brand text-white text-xs font-medium">查询</button>
+                            <button class="px-3 py-2 rounded-lg border border-gray-200 text-xs text-gray-400">重置</button>
+                        </div>
+                    </div>
+                    <!-- Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                                    <th class="px-4 py-3 text-left font-medium">预约编号</th>
+                                    <th class="px-4 py-3 text-left font-medium">客户姓名</th>
+                                    <th class="px-4 py-3 text-left font-medium">手机号</th>
+                                    <th class="px-4 py-3 text-left font-medium">人才编号</th>
+                                    <th class="px-4 py-3 text-left font-medium">看房日期</th>
+                                    <th class="px-4 py-3 text-left font-medium">看房时段</th>
+                                    <th class="px-4 py-3 text-left font-medium">陪同</th>
+                                    <th class="px-4 py-3 text-left font-medium">状态</th>
+                                    <th class="px-4 py-3 text-left font-medium">预约时间</th>
+                                    <th class="px-4 py-3 text-left font-medium">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                <tr class="table-row transition">
+                                    <td class="px-4 py-3 text-gray-400 font-mono text-xs">YY0615001</td>
+                                    <td class="px-4 py-3 font-medium text-gray-800">李明</td>
+                                    <td class="px-4 py-3 text-gray-500">138****5678</td>
+                                    <td class="px-4 py-3 font-mono text-xs text-gray-500">RC20240012</td>
+                                    <td class="px-4 py-3">2026-06-15</td>
+                                    <td class="px-4 py-3">10:00-11:00</td>
+                                    <td class="px-4 py-3 text-gray-500">1人</td>
+                                    <td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-600"><i class="fas fa-circle text-[6px] mr-1"></i>待到访</span></td>
+                                    <td class="px-4 py-3 text-gray-400 text-xs">06-10 09:30</td>
+                                    <td class="px-4 py-3">
+                                        <button class="text-brand text-xs hover:underline mr-2" onclick="viewBookingDetail('李明','YY0615001','138****5678','RC20240012','2026-06-15','10:00-11:00','1人','待到访','06-10 09:30')">详情</button>
+                                        <button class="text-red-400 text-xs hover:underline" onclick="confirmCancelBooking('李明','2026-06-15')">取消</button>
+                                    </td>
+                                </tr>
+                                <tr class="table-row transition">
+                                    <td class="px-4 py-3 text-gray-400 font-mono text-xs">YY0608002</td>
+                                    <td class="px-4 py-3 font-medium text-gray-800">张伟</td>
+                                    <td class="px-4 py-3 text-gray-500">139****1234</td>
+                                    <td class="px-4 py-3 font-mono text-xs text-gray-500">RC20240023</td>
+                                    <td class="px-4 py-3">2026-06-08</td>
+                                    <td class="px-4 py-3">14:00-15:00</td>
+                                    <td class="px-4 py-3 text-gray-500">0人</td>
+                                    <td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-50 text-green-600"><i class="fas fa-circle text-[6px] mr-1"></i>已签到</span></td>
+                                    <td class="px-4 py-3 text-gray-400 text-xs">06-07 10:15</td>
+                                    <td class="px-4 py-3">
+                                        <button class="text-brand text-xs hover:underline" onclick="viewBookingDetail('张伟','YY0608002','139****1234','RC20240023','2026-06-08','14:00-15:00','0人','已签到','06-07 10:15')">详情</button>
+                                    </td>
+                                </tr>
+                                <tr class="table-row transition">
+                                    <td class="px-4 py-3 text-gray-400 font-mono text-xs">YY0605003</td>
+                                    <td class="px-4 py-3 font-medium text-gray-800">王芳</td>
+                                    <td class="px-4 py-3 text-gray-500">137****9876</td>
+                                    <td class="px-4 py-3 font-mono text-xs text-gray-500">RC20240035</td>
+                                    <td class="px-4 py-3">2026-06-05</td>
+                                    <td class="px-4 py-3">09:00-10:00</td>
+                                    <td class="px-4 py-3 text-gray-500">2人</td>
+                                    <td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-500"><i class="fas fa-circle text-[6px] mr-1"></i>已取消</span></td>
+                                    <td class="px-4 py-3 text-gray-400 text-xs">06-03 16:40</td>
+                                    <td class="px-4 py-3">
+                                        <button class="text-brand text-xs hover:underline" onclick="viewBookingDetail('王芳','YY0605003','137****9876','RC20240035','2026-06-05','09:00-10:00','2人','已取消','06-03 16:40')">详情</button>
+                                    </td>
+                                </tr>
+                                <tr class="table-row transition">
+                                    <td class="px-4 py-3 text-gray-400 font-mono text-xs">YY0612004</td>
+                                    <td class="px-4 py-3 font-medium text-gray-800">陈静</td>
+                                    <td class="px-4 py-3 text-gray-500">136****5555</td>
+                                    <td class="px-4 py-3 font-mono text-xs text-gray-500">RC20240048</td>
+                                    <td class="px-4 py-3">2026-06-12</td>
+                                    <td class="px-4 py-3">11:00-12:00</td>
+                                    <td class="px-4 py-3 text-gray-500">0人</td>
+                                    <td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-600"><i class="fas fa-circle text-[6px] mr-1"></i>待到访</span></td>
+                                    <td class="px-4 py-3 text-gray-400 text-xs">06-09 08:20</td>
+                                    <td class="px-4 py-3">
+                                        <button class="text-brand text-xs hover:underline mr-2" onclick="viewBookingDetail('陈静','YY0612004','136****5555','RC20240048','2026-06-12','11:00-12:00','0人','待到访','06-09 08:20')">详情</button>
+                                        <button class="text-red-400 text-xs hover:underline" onclick="confirmCancelBooking('陈静','2026-06-12')">取消</button>
+                                    </td>
+                                </tr>
+                                <tr class="table-row transition">
+                                    <td class="px-4 py-3 text-gray-400 font-mono text-xs">YY0610005</td>
+                                    <td class="px-4 py-3 font-medium text-gray-800">赵磊</td>
+                                    <td class="px-4 py-3 text-gray-500">135****8888</td>
+                                    <td class="px-4 py-3 font-mono text-xs text-gray-500">RC20240056</td>
+                                    <td class="px-4 py-3">2026-06-10</td>
+                                    <td class="px-4 py-3">15:00-16:00</td>
+                                    <td class="px-4 py-3 text-gray-500">1人</td>
+                                    <td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-600"><i class="fas fa-circle text-[6px] mr-1"></i>已评价</span></td>
+                                    <td class="px-4 py-3 text-gray-400 text-xs">06-08 11:00</td>
+                                    <td class="px-4 py-3">
+                                        <button class="text-brand text-xs hover:underline" onclick="viewBookingDetail('赵磊','YY0610005','135****8888','RC20240056','2026-06-10','15:00-16:00','1人','已评价','06-08 11:00')">详情</button>
+                                    </td>
+                                </tr>
+                                <tr class="table-row transition">
+                                    <td class="px-4 py-3 text-gray-400 font-mono text-xs">YY0613006</td>
+                                    <td class="px-4 py-3 font-medium text-gray-800">刘洋</td>
+                                    <td class="px-4 py-3 text-gray-500">133****6666</td>
+                                    <td class="px-4 py-3 font-mono text-xs text-gray-500">RC20240067</td>
+                                    <td class="px-4 py-3">2026-06-13</td>
+                                    <td class="px-4 py-3">16:00-17:00</td>
+                                    <td class="px-4 py-3 text-gray-500">0人</td>
+                                    <td class="px-4 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-600"><i class="fas fa-circle text-[6px] mr-1"></i>待到访</span></td>
+                                    <td class="px-4 py-3 text-gray-400 text-xs">06-10 07:50</td>
+                                    <td class="px-4 py-3">
+                                        <button class="text-brand text-xs hover:underline mr-2" onclick="viewBookingDetail('刘洋','YY0613006','133****6666','RC20240067','2026-06-13','16:00-17:00','0人','待到访','06-10 07:50')">详情</button>
+                                        <button class="text-red-400 text-xs hover:underline" onclick="confirmCancelBooking('刘洋','2026-06-13')">取消</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination -->
+                    <div class="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
+                        <span class="text-xs text-gray-400">共 1,286 条记录 · 当前第 1/215 页</span>
+                        <div class="flex items-center gap-1">
+                            <button class="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 text-xs flex items-center justify-center hover:bg-gray-100"><i class="fas fa-chevron-left"></i></button>
+                            <button class="w-8 h-8 rounded-lg bg-brand text-white text-xs flex items-center justify-center">1</button>
+                            <button class="w-8 h-8 rounded-lg bg-gray-50 text-gray-500 text-xs flex items-center justify-center hover:bg-gray-100">2</button>
+                            <button class="w-8 h-8 rounded-lg bg-gray-50 text-gray-500 text-xs flex items-center justify-center hover:bg-gray-100">3</button>
+                            <span class="text-xs text-gray-400 px-1">...</span>
+                            <button class="w-8 h-8 rounded-lg bg-gray-50 text-gray-500 text-xs flex items-center justify-center hover:bg-gray-100">215</button>
+                            <button class="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 text-xs flex items-center justify-center hover:bg-gray-100"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ========== Modal: 新增人员 ========== -->
+    <div id="modal-add-person" class="modal-overlay" onclick="if(event.target===this)closeAddPersonModal()">
+        <div class="bg-white rounded-2xl shadow-2xl w-[520px] max-h-[85vh] overflow-hidden">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="text-lg font-bold text-gray-900">新增可预约人员</h3>
+                <button class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400" onclick="closeAddPersonModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="bg-brand-light border border-brand/10 rounded-xl px-4 py-3 flex items-center gap-3 mb-2">
+                    <i class="fas fa-info-circle text-brand"></i>
+                    <p class="text-xs text-gray-600">填写人员信息后，该人员即可使用人才编号在C端进行预约看房</p>
+                </div>
+                <!-- 人才编号 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                        人才编号 <span class="text-red-400">*</span>
+                    </label>
+                    <input type="text" placeholder="请输入人才编号，如 RC20240099" class="form-input w-full text-sm">
+                </div>
+                <!-- 姓名 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                        姓名 <span class="text-red-400">*</span>
+                    </label>
+                    <input type="text" placeholder="请输入真实姓名" class="form-input w-full text-sm">
+                </div>
+                <!-- 手机号 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                        手机号 <span class="text-red-400">*</span>
+                    </label>
+                    <input type="text" placeholder="请输入11位手机号" class="form-input w-full text-sm">
+                </div>
+                <!-- 身份证号 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                        身份证号
+                    </label>
+                    <input type="text" placeholder="请输入18位身份证号" class="form-input w-full text-sm">
+                </div>
+                <!-- 备注 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">
+                        备注
+                    </label>
+                    <textarea placeholder="可选，填写备注信息" rows="2" class="form-input w-full text-sm resize-none"></textarea>
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-100 flex items-center justify-end gap-3">
+                <button class="px-5 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-500 hover:bg-gray-50 transition" onclick="closeAddPersonModal()">取消</button>
+                <button class="px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-dark transition" onclick="closeAddPersonModal()">确认新增</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== Modal: 导入名单 ========== -->
+    <div id="modal-import" class="modal-overlay" onclick="if(event.target===this)closeImportModal()">
+        <div class="bg-white rounded-2xl shadow-2xl w-[560px] max-h-[80vh] overflow-hidden">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="text-lg font-bold text-gray-900">导入可预约人员名单</h3>
+                <button class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400" onclick="closeImportModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-5">
+                <!-- Step 1 -->
+                <div>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-brand text-white text-[10px] flex items-center justify-center">1</span>
+                        下载导入模板
+                    </h4>
+                    <p class="text-xs text-gray-400 mb-3 ml-7">请先下载标准模板，按格式填写后上传</p>
+                    <button class="ml-7 flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition">
+                        <i class="fas fa-file-excel text-green-500"></i>下载Excel模板
+                    </button>
+                </div>
+                <!-- Step 2 -->
+                <div>
+                    <h4 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-brand text-white text-[10px] flex items-center justify-center">2</span>
+                        上传填写好的模板
+                    </h4>
+                    <p class="text-xs text-gray-400 mb-3 ml-7">支持 .xlsx / .xls 格式，单次最多导入1000条</p>
+                    <div class="ml-7 border-2 border-dashed border-gray-200 rounded-xl p-8 text-center hover:border-brand hover:bg-brand-light/30 transition cursor-pointer">
+                        <i class="fas fa-cloud-upload-alt text-3xl text-gray-300 mb-3"></i>
+                        <p class="text-sm text-gray-500">点击或拖拽文件至此处上传</p>
+                        <p class="text-xs text-gray-400 mt-1">支持 .xlsx / .xls</p>
+                    </div>
+                </div>
+                <!-- Import Result Preview -->
+                <div class="bg-brand-light rounded-xl p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <i class="fas fa-check-circle text-brand text-sm"></i>
+                        <span class="text-sm font-medium text-brand-dark">上次导入结果</span>
+                    </div>
+                    <div class="flex items-center gap-6 text-xs">
+                        <span class="text-brand-dark">成功导入：<strong class="text-brand">248</strong> 条</span>
+                        <span class="text-red-500">失败：<strong>8</strong> 条</span>
+                        <span class="text-gray-400">重复跳过：<strong>12</strong> 条</span>
+                        <button class="text-brand text-xs hover:underline ml-auto">查看详情</button>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-100 flex items-center justify-end gap-3">
+                <button class="px-5 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-500 hover:bg-gray-50 transition" onclick="closeImportModal()">取消</button>
+                <button class="px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-dark transition" onclick="closeImportModal()">确认导入</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Page switching
+        function switchPage(page) {
+            document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + page).classList.add('active');
+            // Update sidebar
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                item.classList.remove('active');
+                item.classList.remove('text-brand', 'font-medium', 'bg-brand-light');
+                item.classList.add('text-gray-600');
+            });
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            const pageMap = { setting: 2, records: 3 };
+            if (pageMap[page] && sidebarItems[pageMap[page]]) {
+                sidebarItems[pageMap[page]].classList.add('active');
+                sidebarItems[pageMap[page]].classList.add('text-brand', 'font-medium', 'bg-brand-light');
+                sidebarItems[pageMap[page]].classList.remove('text-gray-600');
+            }
+        }
+
+        // Main tab switching
+        function switchMainTab(el, tab) {
+            document.querySelectorAll('[data-main-tab]').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        // Config tab switching
+        function switchConfigTab(el, tab) {
+            document.querySelectorAll('[data-config-tab]').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            document.querySelectorAll('.config-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('config-' + tab).classList.add('active');
+        }
+
+        // Import modal
+        function showImportModal() {
+            document.getElementById('modal-import').classList.add('show');
+        }
+        function closeImportModal() {
+            document.getElementById('modal-import').classList.remove('show');
+        }
+
+        // Add Person modal
+        function showAddPersonModal() {
+            document.getElementById('modal-add-person').classList.add('show');
+        }
+        function closeAddPersonModal() {
+            document.getElementById('modal-add-person').classList.remove('show');
+        }
+
+        // Add Custom Field Modal
+        function showAddFieldModal() {
+            document.getElementById('modal-add-field').classList.add('show');
+        }
+        function closeAddFieldModal() {
+            document.getElementById('modal-add-field').classList.remove('show');
+        }
+
+        // QR Code Modal
+        function showQRModal() {
+            document.getElementById('modal-qrcode').classList.add('show');
+            renderPCQRCode();
+        }
+        function closeQRModal() {
+            document.getElementById('modal-qrcode').classList.remove('show');
+        }
+        let pcQRGenerated = false;
+        function renderPCQRCode() {
+            if (pcQRGenerated) return;
+            const canvas = document.getElementById('pcQrCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            var size = 240, moduleCount = 29, ms = size / moduleCount;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, size, size);
+
+            var seed = 42;
+            function rnd() { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; }
+            function fm(x, y, w, h, c) {
+                ctx.fillStyle = c || '#1a1a2e';
+                ctx.fillRect(Math.round(x*ms), Math.round(y*ms), Math.ceil(w*ms), Math.ceil(h*ms));
+            }
+
+            // Finder patterns
+            [[0,0],[22,0],[0,22]].forEach(function(p){
+                var cx=p[0],cy=p[1];
+                fm(cx,cy,7,7);fm(cx+1,cy+1,5,5,'#fff');fm(cx+2,cy+2,3,3);
+                if(cx===22&&cy===22){fm(cx-2,cy-2,5,5);fm(cx-1,cy-1,3,3,'#fff');fm(cx,cy,1,1);}
+            });
+            // Timing
+            for(var ti=8;ti<21;ti++){
+                fm(ti,6,1,1,ti%2===0?'#1a1a2e':'#fff'); fm(6,ti,1,1,ti%2===0?'#1a1a2e':'#fff');
+            }
+            fm(8,8,1,1);
+            // Data modules
+            for(var row=0;row<moduleCount;row++){for(var col=0;col<moduleCount;col++){
+                if((row<9&&col<9)||(row<9&&col>20)||(row>20&&col<9))continue;
+                if((row===6&&col>=8&&col<=20)||(col===6&&row>=8&&row<=20))continue;
+                if(col>=20&&row>=20&&col<=24&&row<=24)continue;
+                if(rnd()>0.48) fm(col,row,1,1);
+            }}
+
+            // Center logo area (orange circle)
+            ctx.fillStyle='#f05a28';
+            ctx.beginPath(); ctx.arc(size/2,size/2,38,0,Math.PI*2); ctx.fill();
+            // Logo text
+            ctx.fillStyle='#ffffff';
+            ctx.font='bold 14px -apple-system, sans-serif';
+            ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText('明源云客', size/2, size/2);
+
+            // WeChat icon (bottom-right of QR)
+            ctx.fillStyle='#07c160';
+            ctx.beginPath(); ctx.roundRect(size-44, size-44, 28, 28, 6); ctx.fill();
+            ctx.fillStyle='#ffffff';
+            ctx.font='bold 16px sans-serif';
+            ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText('W', size-30, size-30);
+
+            pcQRGenerated = true;
+        }
+
+        // Checkout QR Code Modal
+        function showCheckoutQrModal() {
+            document.getElementById('modal-checkout-qrcode').classList.add('show');
+            renderPCCheckoutQRCode();
+        }
+        function closeCheckoutQrModal() {
+            document.getElementById('modal-checkout-qrcode').classList.remove('show');
+        }
+        let pcCheckoutQRGenerated = false;
+        function renderPCCheckoutQRCode() {
+            if (pcCheckoutQRGenerated) return;
+            const canvas = document.getElementById('pcCheckoutQrCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            var size = 240, moduleCount = 29, ms = size / moduleCount;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, size, size);
+
+            var seed = 99; // different seed for visual difference
+            function rnd() { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; }
+            function fm(x, y, w, h, c) {
+                ctx.fillStyle = c || '#1a1a2e';
+                ctx.fillRect(Math.round(x*ms), Math.round(y*ms), Math.ceil(w*ms), Math.ceil(h*ms));
+            }
+
+            // Finder patterns
+            [[0,0],[22,0],[0,22]].forEach(function(p){
+                var cx=p[0],cy=p[1];
+                fm(cx,cy,7,7);fm(cx+1,cy+1,5,5,'#fff');fm(cx+2,cy+2,3,3);
+                if(cx===22&&cy===22){fm(cx-2,cy-2,5,5);fm(cx-1,cy-1,3,3,'#fff');fm(cx,cy,1,1);}
+            });
+            // Timing - reversed pattern for visual diff
+            for(var ti=8;ti<21;ti++){
+                fm(ti,6,1,1,ti%2===1?'#1a1a2e':'#fff'); fm(6,ti,1,1,ti%2===1?'#1a1a2e':'#fff');
+            }
+            fm(8,8,1,1);
+            // Data modules
+            for(var row=0;row<moduleCount;row++){for(var col=0;col<moduleCount;col++){
+                if((row<9&&col<9)||(row<9&&col>20)||(row>20&&col<9))continue;
+                if((row===6&&col>=8&&col<=20)||(col===6&&row>=8&&row<=20))continue;
+                if(col>=20&&row>=20&&col<=24&&row<=24)continue;
+                if(rnd()>0.52) fm(col,row,1,1); // slightly different density
+            }}
+
+            // Center logo area (blue for checkout)
+            ctx.fillStyle='#3b82f6';
+            ctx.beginPath(); ctx.arc(size/2,size/2,38,0,Math.PI*2); ctx.fill();
+            // Logo text
+            ctx.fillStyle='#ffffff';
+            ctx.font='bold 14px -apple-system, sans-serif';
+            ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText('服务评价', size/2, size/2);
+
+            // Check icon (bottom-right of QR) - green checkmark style
+            ctx.fillStyle='#10b981';
+            ctx.beginPath(); ctx.roundRect(size-44, size-44, 28, 28, 6); ctx.fill();
+            ctx.fillStyle='#ffffff';
+            ctx.font='bold 14px sans-serif';
+            ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText('✓', size-30, size-30);
+
+            pcCheckoutQRGenerated = true;
+        }
+
+        // Field type option selection
+        function selectFieldType(el) {
+            document.querySelectorAll('.field-type-option').forEach(function(o) { o.classList.remove('active'); });
+            el.classList.add('active');
+            el.querySelector('input[type="radio"]').checked = true;
+        }
+
+        // 预约记录 - 查看详情
+        function viewBookingDetail(name, id, phone, talentNo, date, timeSlot, companions, status, bookTime) {
+            document.getElementById('detail-name').textContent = name;
+            document.getElementById('detail-id').textContent = id;
+            document.getElementById('detail-phone').textContent = phone;
+            document.getElementById('detail-talent').textContent = talentNo;
+            document.getElementById('detail-date').textContent = date;
+            document.getElementById('detail-time').textContent = timeSlot;
+            document.getElementById('detail-companions').textContent = companions;
+            document.getElementById('detail-status').textContent = status;
+            document.getElementById('detail-booktime').textContent = bookTime;
+            document.getElementById('modal-booking-detail').classList.add('show');
+        }
+        function closeBookingDetail() {
+            document.getElementById('modal-booking-detail').classList.remove('show');
+        }
+
+        // 预约记录 - 取消预约确认
+        function confirmCancelBooking(name, date) {
+            document.getElementById('cancel-target-name').textContent = name;
+            document.getElementById('cancel-target-date').textContent = date;
+            document.getElementById('modal-cancel-booking').classList.add('show');
+        }
+        function closeCancelBooking() {
+            document.getElementById('modal-cancel-booking').classList.remove('show');
+        }
+
+        // 同意凭证弹窗
+        function showCertificateModal(name, phone, talentNo, agreeTime, version, terminal) {
+            document.getElementById('cert-name').textContent = name;
+            document.getElementById('cert-phone').textContent = phone;
+            document.getElementById('cert-talent').textContent = talentNo;
+            document.getElementById('cert-time').textContent = agreeTime;
+            document.getElementById('cert-version').textContent = version;
+            document.getElementById('cert-terminal').textContent = terminal;
+            // 生成凭证编号
+            var now = new Date();
+            var serial = 'CRT-' + now.getFullYear() + ('0'+(now.getMonth()+1)).slice(-2) + ('0'+now.getDate()).slice(-2) + '-' + Math.random().toString(36).substring(2,8).toUpperCase();
+            document.getElementById('cert-serial').textContent = serial;
+            document.getElementById('cert-generated').textContent = now.getFullYear() + '-' + ('0'+(now.getMonth()+1)).slice(-2) + '-' + ('0'+now.getDate()).slice(-2) + ' ' + ('0'+now.getHours()).slice(-2) + ':' + ('0'+now.getMinutes()).slice(-2);
+            document.getElementById('modal-certificate').classList.add('show');
+        }
+        function closeCertificateModal() {
+            document.getElementById('modal-certificate').classList.remove('show');
+        }
+
+        // 下载凭证为PDF
+        function downloadCertificatePDF() {
+            var name = document.getElementById('cert-name').textContent;
+            var phone = document.getElementById('cert-phone').textContent;
+            var talent = document.getElementById('cert-talent').textContent;
+            var time = document.getElementById('cert-time').textContent;
+            var version = document.getElementById('cert-version').textContent;
+            var terminal = document.getElementById('cert-terminal').textContent;
+            var serial = document.getElementById('cert-serial').textContent;
+            var generated = document.getElementById('cert-generated').textContent;
+            var notice = document.getElementById('cert-notice').innerText;
+
+            // 使用 window.print() 生成PDF样式打印
+            var printWindow = window.open('', '_blank', 'width=800,height=900');
+            printWindow.document.write('<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>预约同意凭证</title>');
+            printWindow.document.write('<style>');
+            printWindow.document.write('body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;padding:48px;color:#1e293b;line-height:1.8;font-size:14px;}');
+            printWindow.document.write('.cert-header{text-align:center;margin-bottom:32px;padding-bottom:24px;border-bottom:2px solid #f05a28;}');
+            printWindow.document.write('.cert-header h1{font-size:24px;color:#f05a28;margin:0 0 4px 0;}');
+            printWindow.document.write('.cert-header .serial{color:#94a3b8;font-size:12px;font-family:monospace;}');
+            printWindow.document.write('.section{margin-bottom:24px;}');
+            printWindow.document.write('.section h3{font-size:14px;color:#f05a28;border-left:3px solid #f05a28;padding-left:10px;margin:0 0 12px 0;}');
+            printWindow.document.write('.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 32px;background:#f8fafc;border-radius:8px;padding:16px 20px;}');
+            printWindow.document.write('.info-item label{display:block;font-size:11px;color:#94a3b8;margin-bottom:2px;}');
+            printWindow.document.write('.info-item span{font-size:14px;font-weight:600;}');
+            printWindow.document.write('.notice-box{border:1px solid #e2e8f0;border-radius:8px;padding:20px;}');
+            printWindow.document.write('.notice-box p{margin:4px 0;}');
+            printWindow.document.write('.footer-note{margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:12px;color:#64748b;text-align:center;}');
+            printWindow.document.write('@media print{body{padding:24px;}@page{size:A4;margin:20mm;}}');
+            printWindow.document.write('</style></head><body>');
+            printWindow.document.write('<div class="cert-header"><h1>预约同意凭证</h1><p class="serial">凭证编号: '+serial+' | 生成日期: '+generated+'</p></div>');
+            printWindow.document.write('<div class="section"><h3>同意人信息</h3><div class="info-grid">');
+            printWindow.document.write('<div class="info-item"><label>姓名</label><span>'+name+'</span></div>');
+            printWindow.document.write('<div class="info-item"><label>手机号</label><span>'+phone+'</span></div>');
+            printWindow.document.write('<div class="info-item"><label>人才编号</label><span style="font-family:monospace;">'+talent+'</span></div>');
+            printWindow.document.write('<div class="info-item"><label>同意时间</label><span>'+time+'</span></div>');
+            printWindow.document.write('<div class="info-item"><label>须知版本</label><span>'+version+'</span></div>');
+            printWindow.document.write('<div class="info-item"><label>操作终端</label><span>'+terminal+'</span></div>');
+            printWindow.document.write('</div></div>');
+            printWindow.document.write('<div class="section"><h3>预约须知内容</h3><div class="notice-box">'+notice.replace(/\n/g,'<br>')+'</div></div>');
+            printWindow.document.write('<div class="footer-note">本凭证为用户在线签署的法律依据文件 | 电子凭证具备法律效力</div>');
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(function(){ printWindow.print(); }, 500);
+        }
+
+    </script>
+
+    <!-- QR Code Modal -->
+    <div id="modal-qrcode" class="modal-overlay">
+        <div class="bg-white rounded-2xl w-[520px] max-w-[95vw] shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="text-base font-semibold text-gray-800">项目预约二维码</h3>
+                <button onclick="closeQRModal()" class="w-7 h-7 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <!-- Body -->
+            <div class="p-6">
+                <p class="text-sm text-gray-500 leading-relaxed mb-5">您可以把此二维码放在需要预约的入口，供客户扫码预约看房；也可以把链接地址挂到网页中供客户点击预约看房</p>
+                <div class="flex justify-center">
+                    <canvas id="pcQrCanvas" width="240" height="240" class="rounded-xl shadow-sm border border-gray-100"></canvas>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="px-6 py-4 bg-gray-50 flex items-center justify-center gap-4 border-t border-gray-100">
+                <button class="px-5 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-white hover:shadow-sm transition">复制跳转链接</button>
+                <button class="px-5 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-white hover:shadow-sm transition">复制图片链接</button>
+                <button class="px-5 py-2 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-dark transition shadow-sm">下载图片</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout QR Code Modal -->
+    <div id="modal-checkout-qrcode" class="modal-overlay">
+        <div class="bg-white rounded-2xl w-[520px] max-w-[95vw] shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="text-base font-semibold text-gray-800">服务评价二维码</h3>
+                <button onclick="closeCheckoutQrModal()" class="w-7 h-7 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <!-- Body -->
+            <div class="p-6">
+                <div class="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-5">
+                    <p class="text-xs text-blue-700 leading-relaxed"><i class="fas fa-info-circle mr-1.5 text-blue-500"></i>客户完成看房后扫描此二维码进行服务评价，系统将记录评价内容</p>
+                </div>
+                <div class="flex justify-center">
+                    <canvas id="pcCheckoutQrCanvas" width="240" height="240" class="rounded-xl shadow-sm border border-gray-100"></canvas>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="px-6 py-4 bg-gray-50 flex items-center justify-center gap-4 border-t border-gray-100">
+                <button class="px-5 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-white hover:shadow-sm transition">复制跳转链接</button>
+                <button class="px-5 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-white hover:shadow-sm transition">下载图片</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== Modal: 新增自定义字段 ========== -->
+    <div id="modal-add-field" class="modal-overlay" onclick="if(event.target===this)closeAddFieldModal()">
+        <div class="bg-white rounded-2xl shadow-2xl w-[480px] max-w-[95vw] overflow-hidden">
+            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="text-lg font-bold text-gray-800">新增自定义字段</h3>
+                <button class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400" onclick="closeAddFieldModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-5">
+                <!-- 字段名称 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1.5">字段名称 <span class="text-red-400">*</span></label>
+                    <input type="text" placeholder="请输入字段名称，如：所属公司、车牌号等" class="form-input w-full text-sm">
+                </div>
+                <!-- 字段类型 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">字段类型 <span class="text-red-400">*</span></label>
+                    <div class="grid grid-cols-4 gap-2.5">
+                        <label class="field-type-option active" onclick="selectFieldType(this)">
+                            <input type="radio" name="fieldType" value="text" checked>
+                            <i class="fas fa-font text-xs mb-1 block"></i>
+                            <span class="text-xs font-medium">文本</span>
+                        </label>
+                        <label class="field-type-option" onclick="selectFieldType(this)">
+                            <input type="radio" name="fieldType" value="number">
+                            <i class="fas fa-hashtag text-xs mb-1 block"></i>
+                            <span class="text-xs font-medium">数字</span>
+                        </label>
+                        <label class="field-type-option" onclick="selectFieldType(this)">
+                            <input type="radio" name="fieldType" value="date">
+                            <i class="far fa-calendar text-xs mb-1 block"></i>
+                            <span class="text-xs font-medium">日期</span>
+                        </label>
+                        <label class="field-type-option" onclick="selectFieldType(this)">
+                            <input type="radio" name="fieldType" value="select">
+                            <i class="fas fa-list-ul text-xs mb-1 block"></i>
+                            <span class="text-xs font-medium">下拉选项</span>
+                        </label>
+                    </div>
+                </div>
+                <!-- 是否必填 -->
+                <div class="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+                    <div>
+                        <p class="text-sm text-gray-700 font-medium">是否必填</p>
+                        <p class="text-xs text-gray-400 mt-0.5">开启后用户提交时必须填写该字段</p>
+                    </div>
+                    <div class="switch" onclick="this.classList.toggle('on')"></div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-100 flex items-center justify-end gap-3">
+                <button class="px-5 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-500 hover:bg-gray-50 transition" onclick="closeAddFieldModal()">取消</button>
+                <button class="px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-dark transition" onclick="closeAddFieldModal()">确认新增</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== Modal: 预约详情 ========== -->
+    <div id="modal-booking-detail" class="modal-overlay" onclick="if(event.target===this)closeBookingDetail()">
+        <div class="bg-white rounded-2xl shadow-2xl w-[520px] max-w-[95vw] overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <h3 class="text-base font-semibold text-gray-800">预约详情</h3>
+                <button onclick="closeBookingDetail()" class="w-7 h-7 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs text-gray-400 mb-1">客户姓名</p>
+                        <p id="detail-name" class="text-sm font-medium text-gray-800">—</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 mb-1">预约编号</p>
+                        <p id="detail-id" class="text-sm font-medium text-gray-800 font-mono">—</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 mb-1">手机号</p>
+                        <p id="detail-phone" class="text-sm font-medium text-gray-800">—</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 mb-1">人才编号</p>
+                        <p id="detail-talent" class="text-sm font-medium text-gray-800 font-mono">—</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 mb-1">看房日期</p>
+                        <p id="detail-date" class="text-sm font-medium text-gray-800">—</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 mb-1">看房时段</p>
+                        <p id="detail-time" class="text-sm font-medium text-gray-800">—</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 mb-1">陪同人数</p>
+                        <p id="detail-companions" class="text-sm font-medium text-gray-800">—</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 mb-1">预约状态</p>
+                        <p id="detail-status" class="text-sm font-medium text-gray-800">—</p>
+                    </div>
+                </div>
+                <div class="pt-3 border-t border-gray-100">
+                    <p class="text-xs text-gray-400 mb-1">提交时间</p>
+                    <p id="detail-booktime" class="text-sm text-gray-500">—</p>
+                </div>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 flex justify-end">
+                <button onclick="closeBookingDetail()" class="px-5 py-2 rounded-lg bg-brand text-white text-sm hover:bg-brand-dark transition">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== Modal: 取消预约确认 ========== -->
+    <div id="modal-cancel-booking" class="modal-overlay" onclick="if(event.target===this)closeCancelBooking()">
+        <div class="bg-white rounded-2xl shadow-2xl w-[420px] max-w-[95vw] overflow-hidden">
+            <div class="p-6 text-center">
+                <div class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-exclamation-triangle text-red-400 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 mb-2">确认取消该预约？</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">
+                    您即将取消 <span id="cancel-target-name" class="font-medium text-gray-700">—</span> 在
+                    <span id="cancel-target-date" class="font-medium text-gray-700">—</span> 的看房预约。<br>
+                    <span class="text-red-400">取消后不可恢复，请谨慎操作。</span>
+                </p>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3">
+                <button onclick="closeCancelBooking()" class="px-5 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition">再想想</button>
+                <button onclick="closeCancelBooking()" class="px-5 py-2.5 rounded-lg bg-red-500 text-white text-sm hover:bg-red-600 transition">确认取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== Modal: 同意凭证详情 ========== -->
+    <div id="modal-certificate" class="modal-overlay" onclick="if(event.target===this)closeCertificateModal()">
+        <div class="bg-white rounded-2xl shadow-2xl w-[680px] max-w-[95vw] max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-brand/10 flex items-center justify-center">
+                        <i class="fas fa-file-contract text-brand text-sm"></i>
+                    </div>
+                    <h3 class="text-base font-semibold text-gray-800">预约同意凭证</h3>
+                </div>
+                <button onclick="closeCertificateModal()" class="w-7 h-7 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6 space-y-5" id="certificate-content">
+                <div class="bg-gray-50 rounded-xl p-5">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fas fa-user-check text-brand"></i>同意人信息</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><p class="text-[11px] text-gray-400 mb-0.5">姓名</p><p id="cert-name" class="text-sm font-semibold text-gray-800">—</p></div>
+                        <div><p class="text-[11px] text-gray-400 mb-0.5">手机号</p><p id="cert-phone" class="text-sm font-semibold text-gray-800">—</p></div>
+                        <div><p class="text-[11px] text-gray-400 mb-0.5">人才编号</p><p id="cert-talent" class="text-sm font-semibold text-gray-800 font-mono">—</p></div>
+                        <div><p class="text-[11px] text-gray-400 mb-0.5">同意时间</p><p id="cert-time" class="text-sm font-semibold text-gray-800">—</p></div>
+                        <div><p class="text-[11px] text-gray-400 mb-0.5">须知版本</p><p id="cert-version" class="text-sm font-semibold text-gray-800">—</p></div>
+                        <div><p class="text-[11px] text-gray-400 mb-0.5">操作终端</p><p id="cert-terminal" class="text-sm font-semibold text-gray-800">—</p></div>
+                    </div>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-xl p-5">
+                    <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2"><i class="fas fa-clipboard-list text-brand"></i>预约须知内容</h4>
+                    <div id="cert-notice" class="text-sm text-gray-700 leading-relaxed space-y-2" style="line-height:1.8;">
+                        <p><strong>一、预约说明</strong></p>
+                        <p>1. 预约看房需提前预约，最多可提前7天进行预约。</p>
+                        <p>2. 每天开放预约时间为08:00-20:00，其他时间段不可预约。</p>
+                        <p>3. 30天内不可重复预约同一项目。</p>
+                        <p>4. 每位预约客户最多可带3名陪同人员到访。</p>
+                        <p style="margin-top:12px;"><strong>二、取消规则</strong></p>
+                        <p>1. 预约成功后，最迟可在到访前一天晚上19:00前取消预约。</p>
+                        <p>2. 超过取消截止时间将无法取消，请合理安排时间。</p>
+                        <p>3. 未取消也未按时签到核销，将进入7天锁定期。</p>
+                        <p style="margin-top:12px;"><strong>三、签到签退规则</strong></p>
+                        <p>1. 预约时段开始前15分钟即可签到，迟到超过10分钟需重新预约。</p>
+                        <p>2. 看房结束后请配合扫码进行服务评价，未评价将影响后续预约。</p>
+                        <p style="margin-top:12px;"><strong>四、个人信息保护声明</strong></p>
+                        <p>1. 您提供的个人信息仅用于预约看房相关服务，不会用于其他用途。</p>
+                        <p>2. 提交预约即表示您已阅读并同意以上全部条款。</p>
+                        <p style="margin-top:12px;"><strong>五、免责声明</strong></p>
+                        <p>1. 看房过程中请遵守现场管理规定，注意人身安全。</p>
+                        <p>2. 本凭证为用户同意预约须知的法律依据，具有法律效力。</p>
+                    </div>
+                </div>
+                <div class="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 flex items-center gap-3">
+                    <i class="fas fa-shield-haltered text-amber-500 text-lg"></i>
+                    <div>
+                        <p class="text-xs text-amber-800 font-medium">本凭证为用户在线签署的法律依据文件</p>
+                        <p class="text-[11px] text-amber-600 mt-0.5">凭证编号：<span id="cert-serial" class="font-mono">—</span>，生成日期：<span id="cert-generated" class="font-mono">—</span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between shrink-0">
+                <p class="text-xs text-gray-400">电子凭证具备法律效力，建议下载留存</p>
+                <div class="flex items-center gap-3">
+                    <button onclick="closeCertificateModal()" class="px-5 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-white transition">关闭</button>
+                    <button onclick="downloadCertificatePDF()" class="px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-medium hover:bg-brand-dark transition flex items-center gap-2 shadow-sm"><i class="fas fa-download text-xs"></i>下载凭证（PDF）</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
