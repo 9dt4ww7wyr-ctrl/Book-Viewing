@@ -1434,6 +1434,31 @@
         }
 
         // 预约记录 - 查看详情
+        // 评价数据（模拟）
+        var reviewData = {
+            'YY0610005': {
+                rating: 4,
+                attitude: ['热情专业', '耐心细致'],
+                match: '非常匹配',
+                duration: '30-60分钟',
+                showroom: 5,
+                community: 4,
+                environment: 4,
+                comment: '置业顾问非常专业，讲解详细，样板间装修风格很喜欢，小区配套设施也比较完善。',
+                reviewTime: '06-10 16:30'
+            }
+        };
+
+        function renderStars(containerId, score) {
+            var el = document.getElementById(containerId);
+            if (!el) return;
+            var html = '';
+            for (var i = 1; i <= 5; i++) {
+                html += '<i class="fas fa-star text-xs ' + (i <= score ? 'text-amber-400' : 'text-gray-200') + '"></i>';
+            }
+            el.innerHTML = html;
+        }
+
         function viewBookingDetail(name, id, phone, talentNo, date, timeSlot, companions, status, bookTime) {
             document.getElementById('detail-name').textContent = name;
             document.getElementById('detail-id').textContent = id;
@@ -1444,6 +1469,25 @@
             document.getElementById('detail-companions').textContent = companions;
             document.getElementById('detail-status').textContent = status;
             document.getElementById('detail-booktime').textContent = bookTime;
+
+            // 评价详情区域
+            var reviewSection = document.getElementById('detail-review-section');
+            if (status === '已评价' && reviewData[id]) {
+                var rd = reviewData[id];
+                renderStars('detail-review-stars', rd.rating);
+                document.getElementById('detail-review-attitude').textContent = rd.attitude.join('、');
+                document.getElementById('detail-review-match').textContent = rd.match;
+                document.getElementById('detail-review-duration').textContent = rd.duration;
+                renderStars('detail-review-showroom', rd.showroom);
+                renderStars('detail-review-community', rd.community);
+                renderStars('detail-review-env', rd.environment);
+                document.getElementById('detail-review-comment').textContent = rd.comment;
+                document.getElementById('detail-review-time').textContent = rd.reviewTime;
+                reviewSection.classList.remove('hidden');
+            } else {
+                reviewSection.classList.add('hidden');
+            }
+
             document.getElementById('modal-booking-detail').classList.add('show');
         }
         function closeBookingDetail() {
@@ -1640,14 +1684,14 @@
 
     <!-- ========== Modal: 预约详情 ========== -->
     <div id="modal-booking-detail" class="modal-overlay" onclick="if(event.target===this)closeBookingDetail()">
-        <div class="bg-white rounded-2xl shadow-2xl w-[520px] max-w-[95vw] overflow-hidden">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div class="bg-white rounded-2xl shadow-2xl w-[560px] max-w-[95vw] max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
                 <h3 class="text-base font-semibold text-gray-800">预约详情</h3>
                 <button onclick="closeBookingDetail()" class="w-7 h-7 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <div class="p-6 space-y-4">
+            <div class="p-6 space-y-4 overflow-y-auto flex-1">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <p class="text-xs text-gray-400 mb-1">客户姓名</p>
@@ -1686,8 +1730,54 @@
                     <p class="text-xs text-gray-400 mb-1">提交时间</p>
                     <p id="detail-booktime" class="text-sm text-gray-500">—</p>
                 </div>
+
+                <!-- 评价详情（仅已评价状态显示） -->
+                <div id="detail-review-section" class="pt-3 border-t border-gray-100 hidden">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="fas fa-star-half-alt text-brand text-sm"></i>
+                        <h4 class="text-sm font-semibold text-gray-700">评价详情</h4>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between py-2 border-b border-gray-50">
+                            <span class="text-xs text-gray-400">整体满意度</span>
+                            <div class="flex gap-0.5" id="detail-review-stars"></div>
+                        </div>
+                        <div class="flex items-center justify-between py-2 border-b border-gray-50">
+                            <span class="text-xs text-gray-400">服务态度</span>
+                            <p id="detail-review-attitude" class="text-xs font-medium text-gray-700 text-right">—</p>
+                        </div>
+                        <div class="flex items-center justify-between py-2 border-b border-gray-50">
+                            <span class="text-xs text-gray-400">房源匹配度</span>
+                            <p id="detail-review-match" class="text-xs font-medium text-gray-700">—</p>
+                        </div>
+                        <div class="flex items-center justify-between py-2 border-b border-gray-50">
+                            <span class="text-xs text-gray-400">看房时长</span>
+                            <p id="detail-review-duration" class="text-xs font-medium text-gray-700">—</p>
+                        </div>
+                        <div class="flex items-center justify-between py-2 border-b border-gray-50">
+                            <span class="text-xs text-gray-400">样板间满意度</span>
+                            <div class="flex gap-0.5" id="detail-review-showroom"></div>
+                        </div>
+                        <div class="flex items-center justify-between py-2 border-b border-gray-50">
+                            <span class="text-xs text-gray-400">社区与配套满意度</span>
+                            <div class="flex gap-0.5" id="detail-review-community"></div>
+                        </div>
+                        <div class="flex items-center justify-between py-2 border-b border-gray-50">
+                            <span class="text-xs text-gray-400">案场环境满意度</span>
+                            <div class="flex gap-0.5" id="detail-review-env"></div>
+                        </div>
+                        <div class="py-2">
+                            <p class="text-xs text-gray-400 mb-1">补充评价</p>
+                            <p id="detail-review-comment" class="text-xs text-gray-600 leading-relaxed bg-gray-50 rounded-lg px-3 py-2">—</p>
+                        </div>
+                        <div class="flex items-center justify-between py-2 pt-3 border-t border-gray-100">
+                            <span class="text-xs text-gray-400">评价时间</span>
+                            <p id="detail-review-time" class="text-xs text-gray-500">—</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="px-6 py-4 bg-gray-50 flex justify-end">
+            <div class="px-6 py-4 bg-gray-50 flex justify-end shrink-0">
                 <button onclick="closeBookingDetail()" class="px-5 py-2 rounded-lg bg-brand text-white text-sm hover:bg-brand-dark transition">关闭</button>
             </div>
         </div>
